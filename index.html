@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ford Assistance · Panel de Satisfacción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1C1C1E;
+    --ink-soft:#33332F;
+    --paper:#F5F4F0;
+    --card:#FFFFFF;
+    --line:#E6E4DE;
+    --muted:#7A7972;
+    --teal:#12A79C;
+    --teal-soft:#5FC4BB;
+    --orange:#EE9324;
+    --pink:#E61C5C;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(28,28,30,0.04), 0 8px 24px -12px rgba(28,28,30,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.num{font-family:'Manrope',system-ui,sans-serif;}
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    background:var(--ink);
+    color:#fff;
+    padding:22px 32px 20px;
+  }
+  .topbar-inner{
+    max-width:1320px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand img{height:34px;width:auto;display:block;}
+  .brand-text h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-0.01em;}
+  .brand-text p{margin:2px 0 0;font-size:12.5px;color:#C9C8C3;}
+  .updated{font-size:12px;color:#C9C8C3;text-align:right;}
+  .updated strong{color:#fff;font-weight:600;}
+
+  /* ---------- Filter bar ---------- */
+  .filterbar{
+    max-width:1320px;
+    margin:16px auto 0;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .filterbar .flabel{font-size:12px;color:#C9C8C3;margin-right:2px;}
+  .msel{position:relative;}
+  .msel button.msel-btn{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    color:#fff;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:130px;
+    justify-content:space-between;
+  }
+  .msel button.msel-btn:hover{background:rgba(255,255,255,0.14);}
+  .msel button.msel-btn .chev{opacity:0.6;font-size:10px;}
+  .msel-panel{
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    background:#fff;
+    color:var(--ink);
+    border-radius:12px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.25);
+    padding:8px;
+    min-width:220px;
+    max-height:280px;
+    overflow-y:auto;
+    z-index:40;
+    display:none;
+  }
+  .msel.open .msel-panel{display:block;}
+  .msel-opt{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:7px 8px;
+    border-radius:7px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .msel-opt:hover{background:var(--paper);}
+  .msel-opt input{accent-color:var(--teal);width:15px;height:15px;}
+  .msel-actions{
+    display:flex;justify-content:space-between;
+    padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:4px;
+  }
+  .msel-actions button{
+    background:none;border:none;color:var(--teal);font-size:12px;
+    font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+  }
+  .reset-btn{
+    background:none;
+    border:1px solid rgba(255,255,255,0.2);
+    color:#C9C8C3;
+    border-radius:10px;
+    padding:8px 14px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .reset-btn:hover{color:#fff;border-color:rgba(255,255,255,0.4);}
+  .count-pill{
+    margin-left:auto;
+    font-size:12.5px;
+    color:#C9C8C3;
+    background:rgba(255,255,255,0.08);
+    border-radius:20px;
+    padding:7px 14px;
+  }
+  .count-pill strong{color:#fff;}
+
+  /* ---------- Main layout ---------- */
+  main{max-width:1320px;margin:0 auto;padding:26px 32px 60px;}
+  .section-title{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    font-weight:700;
+    margin:0 0 14px;
+  }
+
+  /* ---------- KPI cards ---------- */
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:16px;
+    margin-bottom:34px;
+  }
+  .kpi-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 18px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .kpi-top{display:flex;align-items:center;gap:14px;}
+  .kpi-ring{position:relative;width:56px;height:56px;flex:none;}
+  .kpi-ring canvas{width:56px!important;height:56px!important;}
+  .kpi-ring .ring-val{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:800;font-family:'Manrope',sans-serif;
+  }
+  .kpi-label{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.3;}
+  .kpi-num{font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+  .kpi-breakdown{display:flex;flex-direction:column;gap:5px;margin-top:2px;}
+  .kpi-bar-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);}
+  .kpi-bar-track{flex:1;height:6px;border-radius:4px;background:var(--paper);overflow:hidden;}
+  .kpi-bar-fill{height:100%;border-radius:4px;}
+  .kpi-bar-pct{width:34px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .kpi-bar-name{width:76px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* ---------- Charts grid ---------- */
+  .charts-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+  }
+  .chart-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:20px 22px 14px;
+  }
+  .chart-card.wide{grid-column:1 / -1;}
+  .chart-card h3{font-size:14.5px;font-weight:700;margin:0 0 2px;}
+  .chart-card .chart-sub{font-size:11.5px;color:var(--muted);margin:0 0 10px;}
+  .chart-wrap{position:relative;height:260px;}
+  .chart-wrap.tall{height:320px;}
+  .empty-note{
+    text-align:center;color:var(--muted);font-size:13px;padding:60px 20px;
+  }
+
+  footer{
+    text-align:center;padding:26px 20px 40px;color:var(--muted);font-size:12px;
+  }
+
+  @media (max-width:1100px){
+    .kpis{grid-template-columns:repeat(3,1fr);}
+    .charts-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:680px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    header.topbar{padding:18px 18px 16px;}
+    main{padding:20px 16px 40px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img src="logo.png" alt="Logo">
+      <div class="brand-text">
+        <h1>Panel de Satisfacción · Ford Assistance</h1>
+        <p>Experiencia de asistencia en ruta — resultados de encuesta</p>
+      </div>
+    </div>
+    <div class="updated">Datos actualizados<br><strong id="updatedAt">—</strong></div>
+  </div>
+  <div class="filterbar" id="filterbar">
+    <span class="flabel">Filtrar por</span>
+    <!-- filter dropdowns injected by JS -->
+    <button class="reset-btn" id="resetBtn">Limpiar filtros</button>
+    <div class="count-pill"><strong id="countCasos">0</strong>&nbsp;casos</div>
+  </div>
+</header>
+
+<main>
+  <p class="section-title">Indicadores clave</p>
+  <section class="kpis" id="kpiSection"></section>
+
+  <p class="section-title">Detalle</p>
+  <section class="charts-grid" id="chartsGrid">
+    <div class="chart-card">
+      <h3>Nivel de Recomendación</h3>
+      <p class="chart-sub" id="npsSub">NPS —</p>
+      <div class="chart-wrap"><canvas id="chartNps"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>NPS por Modelo</h3>
+      <p class="chart-sub">Promotor / Neutral / Detractor por modelo</p>
+      <div class="chart-wrap"><canvas id="chartNpsModelo"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Ranking por Modelo</h3>
+      <p class="chart-sub">Casos por modelo de vehículo</p>
+      <div class="chart-wrap"><canvas id="chartModelo"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Ranking por Provincia</h3>
+      <p class="chart-sub">Casos por provincia de inicio</p>
+      <div class="chart-wrap"><canvas id="chartProvincia"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Ranking por Tipo de Problema</h3>
+      <p class="chart-sub">Motivos más frecuentes de asistencia</p>
+      <div class="chart-wrap"><canvas id="chartProblema"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Ranking por Tiempo de Arribo</h3>
+      <p class="chart-sub">Distribución por tramo de demora</p>
+      <div class="chart-wrap"><canvas id="chartDemora"></canvas></div>
+    </div>
+    <div class="chart-card wide">
+      <h3>Ranking por Kilometraje</h3>
+      <p class="chart-sub">Distribución por tramo de kilometraje del servicio</p>
+      <div class="chart-wrap"><canvas id="chartKm"></canvas></div>
+    </div>
+  </section>
+</main>
+
+<footer>Panel generado a partir de la base de datos mensual de encuestas de satisfacción.</footer>
+
+<script>
+/* ============ Diseño / paleta ============ */
+const COLORS = { teal:'#12A79C', tealSoft:'#5FC4BB', orange:'#EE9324', pink:'#E61C5C', line:'#E6E4DE', muted:'#7A7972', ink:'#1C1C1E' };
+
+// Mapeo semántico de categorías conocidas -> color
+function catColor(v){
+  if(!v) return COLORS.muted;
+  const s = String(v).toUpperCase();
+  if(['SI','MUY SATISFECHO','CONFÍO','PROMOTOR','RESPONDIÓ'].includes(s)) return COLORS.teal;
+  if(['SATISFECHO'].includes(s)) return COLORS.tealSoft;
+  if(['NEUTRAL','PARCIAL'].includes(s)) return COLORS.orange;
+  if(['NO','INSATISFECHO','NO CONFÍO','DETRACTOR','NO RECOMENDARÍA','NO RESPONDIÓ'].includes(s)) return COLORS.pink;
+  return COLORS.teal;
+}
+
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = COLORS.muted;
+
+/* ============ Estado ============ */
+let RAW = [];               // todos los registros
+let FILTERS = { mes:[], modelo:[], provincia:[] };
+let CHARTS = {};             // instancias Chart.js activas para poder destruirlas al refiltrar
+
+/* ============ Utilidades de agregación ============ */
+function applyFilters(records){
+  return records.filter(r =>
+    (FILTERS.mes.length===0 || FILTERS.mes.includes(r.mes)) &&
+    (FILTERS.modelo.length===0 || FILTERS.modelo.includes(r.modelo)) &&
+    (FILTERS.provincia.length===0 || FILTERS.provincia.includes(r.provincia))
+  );
+}
+function countBy(records, field){
+  const out = {};
+  for(const r of records){
+    const v = r[field];
+    if(v===null || v===undefined || v==='') continue;
+    out[v] = (out[v]||0)+1;
+  }
+  return out;
+}
+function sortDesc(obj){
+  return Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+}
+function pct(n,d){ return d>0 ? (n/d*100) : 0; }
+
+/* ============ Filtros (dropdowns) ============ */
+function uniqueSorted(records, field){
+  return [...new Set(records.map(r=>r[field]).filter(v=>v!==null && v!==undefined && v!==''))].sort();
+}
+
+function buildMultiSelect(id, label, options){
+  const wrap = document.createElement('div');
+  wrap.className = 'msel';
+  wrap.id = id;
+  wrap.innerHTML = `
+    <button class="msel-btn" type="button">
+      <span class="msel-label">${label}: Todos</span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="msel-panel">
+      ${options.map(o=>`
+        <label class="msel-opt">
+          <input type="checkbox" value="${o}"> <span>${o}</span>
+        </label>`).join('')}
+      <div class="msel-actions">
+        <button type="button" data-act="all">Todos</button>
+        <button type="button" data-act="none">Ninguno</button>
+      </div>
+    </div>`;
+  return wrap;
+}
+
+function wireMultiSelect(wrap, filterKey){
+  const btn = wrap.querySelector('.msel-btn');
+  const labelEl = wrap.querySelector('.msel-label');
+  const baseLabel = labelEl.textContent.split(':')[0];
+  const checkboxes = [...wrap.querySelectorAll('input[type=checkbox]')];
+
+  function refreshLabel(){
+    const n = checkboxes.filter(c=>c.checked).length;
+    labelEl.textContent = n===0 ? `${baseLabel}: Todos` : `${baseLabel}: ${n} sel.`;
+  }
+  function syncFilterAndRender(){
+    FILTERS[filterKey] = checkboxes.filter(c=>c.checked).map(c=>c.value);
+    refreshLabel();
+    renderAll();
+  }
+
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    document.querySelectorAll('.msel.open').forEach(m=>{ if(m!==wrap) m.classList.remove('open'); });
+    wrap.classList.toggle('open');
+  });
+  checkboxes.forEach(cb=> cb.addEventListener('change', syncFilterAndRender));
+  wrap.querySelector('[data-act="all"]').addEventListener('click', ()=>{
+    checkboxes.forEach(c=>c.checked=true); syncFilterAndRender();
+  });
+  wrap.querySelector('[data-act="none"]').addEventListener('click', ()=>{
+    checkboxes.forEach(c=>c.checked=false); syncFilterAndRender();
+  });
+}
+
+document.addEventListener('click', ()=> {
+  document.querySelectorAll('.msel.open').forEach(m=>m.classList.remove('open'));
+});
+
+function setupFilters(){
+  const bar = document.getElementById('filterbar');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const defs = [
+    {id:'fMes', key:'mes', label:'Mes', field:'mes'},
+    {id:'fModelo', key:'modelo', label:'Modelo', field:'modelo'},
+    {id:'fProvincia', key:'provincia', label:'Provincia', field:'provincia'},
+  ];
+
+  defs.forEach(d=>{
+    const opts = uniqueSorted(RAW, d.field);
+    const el = buildMultiSelect(d.id, d.label, opts);
+    bar.insertBefore(el, resetBtn);
+    wireMultiSelect(el, d.key);
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    document.querySelectorAll('.msel input[type=checkbox]').forEach(c=>c.checked=false);
+    document.querySelectorAll('.msel-label').forEach(l=> l.textContent = l.textContent.split(':')[0] + ': Todos');
+    FILTERS = {mes:[], modelo:[], provincia:[]};
+    renderAll();
+  });
+}
+
+/* ============ KPIs ============ */
+const KPI_DEFS = [
+  {
+    key:'resuelto', label:'Resolución del Problema',
+    positive:['Si'],
+    calc(records){
+      const c = countBy(records,'resuelto');
+      const total = Object.values(c).reduce((a,b)=>a+b,0);
+      return {headline: pct(c['Si']||0, total), breakdown: sortDesc(c), total};
+    }
+  },
+  {
+    key:'satAtencion', label:'Satisfacción de Atención',
+    calc(records){
+      const c = countBy(records,'satAtencion');
+      const total = Object.values(c).reduce((a,b)=>a+b,0);
+      const pos = (c['Muy satisfecho']||0) + (c['Satisfecho']||0);
+      return {headline: pct(pos,total), breakdown: sortDesc(c), total};
+    }
+  },
+  {
+    key:'satAgente', label:'Satisfacción Desempeño Agente',
+    calc(records){
+      const c = countBy(records,'satAgente');
+      const total = Object.values(c).reduce((a,b)=>a+b,0);
+      const pos = (c['Muy satisfecho']||0) + (c['Satisfecho']||0);
+      return {headline: pct(pos,total), breakdown: sortDesc(c), total};
+    }
+  },
+  {
+    key:'confianza', label:'Confianza en Ford',
+    calc(records){
+      const c = countBy(records,'confianza');
+      const total = Object.values(c).reduce((a,b)=>a+b,0);
+      return {headline: pct(c['Confío']||0, total), breakdown: sortDesc(c), total};
+    }
+  },
+  {
+    key:'respondio', label:'Nivel de Respuesta',
+    calc(records){
+      const c = countBy(records,'respondio');
+      const total = Object.values(c).reduce((a,b)=>a+b,0);
+      const pos = (c['RESPONDIÓ']||0) + (c['PARCIAL']||0);
+      return {headline: pct(pos,total), breakdown: sortDesc(c), total};
+    }
+  },
+];
+
+function renderKpis(records){
+  const section = document.getElementById('kpiSection');
+  section.innerHTML = '';
+  KPI_DEFS.forEach(def=>{
+    const {headline, breakdown, total} = def.calc(records);
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const ringId = 'ring_' + def.key;
+    card.innerHTML = `
+      <div class="kpi-top">
+        <div class="kpi-ring"><canvas id="${ringId}"></canvas><div class="ring-val">${total? Math.round(headline)+'%':'—'}</div></div>
+        <div>
+          <div class="kpi-label">${def.label}</div>
+          <div class="kpi-num">${total? Math.round(headline)+'%':'—'}</div>
+        </div>
+      </div>
+      <div class="kpi-breakdown">
+        ${breakdown.map(([name,n])=>{
+          const p = pct(n,total);
+          return `<div class="kpi-bar-row">
+            <span class="kpi-bar-name">${name}</span>
+            <span class="kpi-bar-track"><span class="kpi-bar-fill" style="width:${p}%;background:${catColor(name)}"></span></span>
+            <span class="kpi-bar-pct">${Math.round(p)}%</span>
+          </div>`;
+        }).join('') || '<div class="kpi-bar-row" style="color:var(--muted)">Sin respuestas</div>'}
+      </div>`;
+    section.appendChild(card);
+
+    const ctx = card.querySelector('#'+ringId).getContext('2d');
+    if(CHARTS[ringId]) CHARTS[ringId].destroy();
+    CHARTS[ringId] = new Chart(ctx, {
+      type:'doughnut',
+      data:{ datasets:[{ data:[headline, 100-headline], backgroundColor:[COLORS.teal, COLORS.line], borderWidth:0 }] },
+      options:{ cutout:'72%', plugins:{legend:{display:false}, tooltip:{enabled:false}}, animation:{duration:400} }
+    });
+  });
+}
+
+/* ============ Gráficos ============ */
+function barChart(canvasId, dataObj, opts={}){
+  const entries = sortDesc(dataObj);
+  const el = document.getElementById(canvasId);
+  const wrap = el.closest('.chart-wrap');
+  if(entries.length===0){
+    wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
+    return;
+  }
+  const ctx = el.getContext('2d');
+  if(CHARTS[canvasId]) CHARTS[canvasId].destroy();
+  CHARTS[canvasId] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: entries.map(e=>e[0]),
+      datasets:[{
+        data: entries.map(e=>e[1]),
+        backgroundColor: opts.color || COLORS.teal,
+        borderRadius:5,
+        maxBarThickness:26,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:(c)=> ` ${c.parsed.x} casos`}} },
+      scales:{
+        x:{ grid:{color:COLORS.line}, ticks:{precision:0} },
+        y:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+function renderNps(records){
+  const c = countBy(records,'recomendacion');
+  const total = Object.values(c).reduce((a,b)=>a+b,0);
+  const order = ['Promotor','Neutral','Detractor'];
+  const present = order.filter(k=>c[k]!==undefined);
+  const sub = document.getElementById('npsSub');
+  const wrap = document.getElementById('chartNps').closest('.chart-wrap');
+
+  if(total===0){
+    sub.textContent = 'NPS —';
+    wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
+    return;
+  }
+  const promPct = pct(c['Promotor']||0, total);
+  const detPct = pct(c['Detractor']||0, total);
+  sub.textContent = `NPS ${Math.round(promPct - detPct)}`;
+
+  const ctx = document.getElementById('chartNps').getContext('2d');
+  if(CHARTS.chartNps) CHARTS.chartNps.destroy();
+  CHARTS.chartNps = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: present,
+      datasets:[{ data: present.map(k=>c[k]), backgroundColor: present.map(catColor), borderWidth:0 }]
+    },
+    options:{
+      cutout:'62%',
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, padding:14}} }
+    }
+  });
+}
+
+function renderNpsPorModelo(records){
+  const modelos = uniqueSorted(records,'modelo');
+  const cats = ['Promotor','Neutral','Detractor'];
+  const el = document.getElementById('chartNpsModelo');
+  const wrap = el.closest('.chart-wrap');
+  if(modelos.length===0){
+    wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
+    return;
+  }
+  const byModelo = modelos.map(m=>{
+    const sub = records.filter(r=>r.modelo===m);
+    return countBy(sub,'recomendacion');
+  });
+  // orden por total de casos desc
+  const totals = byModelo.map(c=>Object.values(c).reduce((a,b)=>a+b,0));
+  const idx = modelos.map((_,i)=>i).sort((a,b)=>totals[b]-totals[a]);
+  const labels = idx.map(i=>modelos[i]);
+
+  const ctx = el.getContext('2d');
+  if(CHARTS.chartNpsModelo) CHARTS.chartNpsModelo.destroy();
+  CHARTS.chartNpsModelo = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets: cats.map(cat=>({
+        label:cat,
+        data: idx.map(i=>byModelo[i][cat]||0),
+        backgroundColor: catColor(cat),
+        borderRadius:4,
+        maxBarThickness:16,
+      }))
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10,padding:14}} },
+      scales:{ x:{stacked:true, grid:{color:COLORS.line}, ticks:{precision:0}}, y:{stacked:true, grid:{display:false}} }
+    }
+  });
+}
+
+/* ============ Render principal ============ */
+function renderAll(){
+  const records = applyFilters(RAW);
+  document.getElementById('countCasos').textContent = records.length;
+
+  renderKpis(records);
+  renderNps(records);
+  renderNpsPorModelo(records);
+  barChart('chartModelo', countBy(records,'modelo'), {color:COLORS.teal});
+  barChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.teal});
+  barChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange});
+  barChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
+  barChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.tealSoft});
+}
+
+/* ============ Carga inicial ============ */
+fetch('data.json', {cache:'no-store'})
+  .then(r=>r.json())
+  .then(data=>{
+    RAW = data.records || [];
+    document.getElementById('updatedAt').textContent = data.generatedAt || '—';
+    setupFilters();
+    renderAll();
+  })
+  .catch(err=>{
+    document.getElementById('kpiSection').innerHTML =
+      '<p class="empty-note">No se pudo cargar data.json. Verificá que el archivo esté junto a index.html.</p>';
+    console.error(err);
+  });
+</script>
+</body>
+</html>

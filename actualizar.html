@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actualizar datos del panel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{ --teal:#12A79C; --orange:#EE9324; --pink:#E61C5C; --ink:#1C1C1E; --paper:#F5F4F0; --line:#E6E4DE; --muted:#7A7972; }
+  *{box-sizing:border-box;}
+  body{
+    font-family:system-ui,sans-serif; background:var(--paper); color:var(--ink);
+    margin:0; padding:40px 20px; display:flex; justify-content:center;
+  }
+  .box{
+    max-width:560px; width:100%; background:#fff; border-radius:16px;
+    box-shadow:0 8px 24px -12px rgba(0,0,0,0.15); padding:32px 34px;
+  }
+  h1{font-size:19px; margin:0 0 6px;}
+  p.sub{color:var(--muted); font-size:13.5px; margin:0 0 26px; line-height:1.5;}
+  .drop{
+    border:2px dashed var(--line); border-radius:12px; padding:34px 20px;
+    text-align:center; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .drop.drag{border-color:var(--teal); background:#F0FBFA;}
+  .drop input{display:none;}
+  .drop .icon{font-size:28px; margin-bottom:8px;}
+  .drop .main{font-weight:600; font-size:14px;}
+  .drop .hint{font-size:12.5px; color:var(--muted); margin-top:4px;}
+  .status{margin-top:18px; font-size:13.5px; line-height:1.6;}
+  .status.ok{color:var(--teal);}
+  .status.err{color:var(--pink);}
+  .steps{margin-top:26px; padding-top:22px; border-top:1px solid var(--line);}
+  .steps h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 12px;}
+  .steps ol{margin:0; padding-left:20px; font-size:13.5px; line-height:1.9; color:var(--ink);}
+  .dlbtn{
+    display:inline-flex; align-items:center; gap:8px; margin-top:16px;
+    background:var(--ink); color:#fff; border:none; border-radius:10px;
+    padding:11px 18px; font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .dlbtn[disabled]{opacity:0.4; cursor:not-allowed;}
+  code{background:var(--paper); padding:1px 6px; border-radius:5px; font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Actualizar datos del panel</h1>
+  <p class="sub">Subí el Excel de BBDD del mes (el mismo formato de siempre) y esta página genera el <code>data.json</code> nuevo. Esto corre en tu navegador — el archivo no se envía a ningún servidor.</p>
+
+  <div class="drop" id="drop">
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div class="icon">📄</div>
+    <div class="main">Hacé clic o arrastrá el Excel acá</div>
+    <div class="hint">Formato esperado: mismas columnas que BBDD_Vehículo.xlsx</div>
+  </div>
+
+  <div id="status" class="status"></div>
+  <button class="dlbtn" id="dlBtn" disabled>Descargar data.json</button>
+
+  <div class="steps">
+    <h2>Cómo actualizar el panel cada mes</h2>
+    <ol>
+      <li>Subí acá el Excel de BBDD del mes (acumulado o solo el mes nuevo, según cómo lo armes).</li>
+      <li>Descargá el <code>data.json</code> generado.</li>
+      <li>Reemplazá el archivo <code>data.json</code> en tu hosting por este nuevo (mismo nombre, misma carpeta que <code>index.html</code>).</li>
+      <li>Listo — el link del panel ya muestra los datos actualizados, sin tocar nada más.</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const COLS = {
+  'Mes':'mes',
+  'Modelo':'modelo',
+  'Provincia de Inicio':'provincia',
+  'Tipo de Problema':'tipoProblema',
+  'Tramo Demora':'tramoDemora',
+  'Tramo Kilometraje':'tramoKm',
+  'Satisfacción General de Atención':'satAtencion',
+  'Satisfacción con Desempeño del Agente':'satAgente',
+  'Confianza en Ford Assistance':'confianza',
+  'Recomendación de Ford a otras personas':'recomendacion',
+  '¿Resolvimos su problema y/o consulta?':'resuelto',
+  'RESPONDIO?':'respondio',
+};
+
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const statusEl = document.getElementById('status');
+const dlBtn = document.getElementById('dlBtn');
+let lastBlob = null;
+
+drop.addEventListener('click', ()=> fileInput.click());
+drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('drag'); });
+drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
+drop.addEventListener('drop', e=>{
+  e.preventDefault(); drop.classList.remove('drag');
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function excelDateToStr(v){
+  // v puede venir como Date, string ISO, o número de serie Excel
+  let d;
+  if(v instanceof Date) d = v;
+  else if(typeof v === 'number') d = new Date(Math.round((v-25569)*86400*1000));
+  else d = new Date(v);
+  if(isNaN(d)) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  return `${y}-${m}`;
+}
+
+function handleFile(file){
+  statusEl.className='status';
+  statusEl.textContent = 'Procesando…';
+  dlBtn.disabled = true;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:null});
+
+      const missing = Object.keys(COLS).filter(c => !(c in (rows[0]||{})));
+      if(missing.length){
+        throw new Error('Faltan columnas esperadas: ' + missing.join(', '));
+      }
+
+      function normResuelto(v){
+        if(v===null || v===undefined || v==='') return null;
+        const s = String(v).trim().toLowerCase();
+        if(s.startsWith('si')) return 'Si';
+        if(s.startsWith('no') && !s.startsWith('no info')) return 'No';
+        if(s.startsWith('a medias')) return 'Parcial';
+        return 'Otro';
+      }
+
+      const records = rows.map(row=>{
+        const out = {};
+        for(const [src,dst] of Object.entries(COLS)){
+          let v = row[src];
+          if(v===undefined || v===null || v==='') v = null;
+          if(typeof v === 'string') v = v.trim() || null;
+          out[dst] = v;
+        }
+        out.mes = row['Mes'] ? excelDateToStr(row['Mes']) : null;
+        // "¿Resolvimos su problema y/o consulta?" a veces trae texto libre
+        // (ej. "A medias, no tenía las herramientas") -> se normaliza a Si/No/Parcial
+        out.resuelto = normResuelto(row['¿Resolvimos su problema y/o consulta?']);
+        return out;
+      });
+
+      const payload = {
+        generatedAt: new Date().toLocaleString('es-AR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+        records,
+      };
+      lastBlob = new Blob([JSON.stringify(payload, null, 0)], {type:'application/json'});
+      statusEl.className = 'status ok';
+      statusEl.textContent = `Listo: ${records.length} registros procesados.`;
+      dlBtn.disabled = false;
+    }catch(err){
+      statusEl.className = 'status err';
+      statusEl.textContent = 'Error: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+dlBtn.addEventListener('click', ()=>{
+  if(!lastBlob) return;
+  const url = URL.createObjectURL(lastBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'data.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
