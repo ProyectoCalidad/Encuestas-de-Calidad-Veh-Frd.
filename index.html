@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="chart.umd.min.js"></script>
 <style>
   :root{
     --ink:#1C1C1E;
@@ -300,6 +300,14 @@ function catColor(v){
   return COLORS.teal;
 }
 
+if (typeof Chart === 'undefined') {
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('kpiSection').innerHTML =
+      '<p class="empty-note">No se pudo cargar la librería de gráficos (chart.umd.min.js). ' +
+      'Verificá que ese archivo esté subido junto a index.html en el repositorio.</p>';
+  });
+  throw new Error('Chart.js no disponible: falta chart.umd.min.js junto a index.html');
+}
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = COLORS.muted;
