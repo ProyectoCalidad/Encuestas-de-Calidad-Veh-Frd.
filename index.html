@@ -75,12 +75,16 @@
   .logos img{display:block;}
   .logo-cardinal{height:46px;width:auto;}
   .logo-divider{width:1px;height:34px;background:rgba(255,255,255,0.25);}
-  .logo-ford{
-    height:40px;width:auto;
+  .logo-ford-box{
+    height:56px;width:104px;
     background:#fff;
-    padding:5px 10px;
-    border-radius:8px;
-    display:block;
+    border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    padding:6px;
+  }
+  .logo-ford-box img{
+    max-height:100%;max-width:100%;
+    display:block;object-fit:contain;
   }
   .brand-text h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-0.01em;}
   .brand-text p{margin:2px 0 0;font-size:12.5px;color:var(--header-muted);}
@@ -175,13 +179,14 @@
   .reset-btn:hover{color:#fff;border-color:rgba(255,255,255,0.4);}
   .count-pill{
     margin-left:auto;
-    font-size:12.5px;
+    font-size:14px;
     color:var(--header-muted);
-    background:rgba(255,255,255,0.08);
-    border-radius:20px;
-    padding:7px 14px;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:24px;
+    padding:10px 20px;
   }
-  .count-pill strong{color:#fff;}
+  .count-pill strong{color:#fff;font-size:16px;}
 
   /* ---------- Main layout ---------- */
   main{max-width:1360px;margin:0 auto;padding:26px 32px 60px;}
@@ -308,7 +313,7 @@
       <div class="logos">
         <img class="logo-cardinal" src="logo.png" alt="Cardinal Assistance">
         <div class="logo-divider"></div>
-        <img class="logo-ford" src="ford-logo.png" alt="Ford">
+        <div class="logo-ford-box"><img src="ford-logo.png" alt="Ford"></div>
       </div>
       <div class="brand-text">
         <h1>Panel de Satisfacción · Ford Assistance</h1>
@@ -352,7 +357,7 @@
     </div>
     <div class="chart-card">
       <h3>Ranking por Provincia</h3>
-      <p class="chart-sub">Casos por provincia de inicio</p>
+      <p class="chart-sub">% de casos por provincia de inicio</p>
       <div class="chart-wrap"><canvas id="chartProvincia"></canvas></div>
     </div>
     <div class="chart-card">
@@ -362,7 +367,7 @@
     </div>
     <div class="chart-card">
       <h3>Ranking por Tiempo de Arribo</h3>
-      <p class="chart-sub">Distribución por tramo de demora</p>
+      <p class="chart-sub">% de casos por tramo de demora</p>
       <div class="chart-wrap"><canvas id="chartDemora"></canvas></div>
     </div>
     <div class="chart-card">
@@ -908,9 +913,9 @@ function renderAll(){
   renderNps(records);
   renderNpsPorModelo(records);
   pctBarChart('chartModelo', countBy(records,'modelo'), {color:COLORS.fordBlue});
-  countBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft});
+  pctBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft});
   pctBarChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange});
-  countBarChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
+  pctBarChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
   pctBarChart('chartTipoServicio', countBy(records,'tipoMovil'), {color:COLORS.fordBlue});
   pctBarChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.orange});
 
