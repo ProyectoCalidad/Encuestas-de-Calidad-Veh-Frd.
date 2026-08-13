@@ -10,37 +10,59 @@
 <script src="chart.umd.min.js"></script>
 <style>
   :root{
-    --ink:#1C1C1E;
-    --ink-soft:#33332F;
-    --paper:#F5F4F0;
-    --card:#FFFFFF;
-    --line:#E6E4DE;
-    --muted:#7A7972;
     --teal:#12A79C;
     --teal-soft:#5FC4BB;
     --orange:#EE9324;
     --pink:#E61C5C;
     --radius:16px;
-    --shadow: 0 1px 2px rgba(28,28,30,0.04), 0 8px 24px -12px rgba(28,28,30,0.12);
+  }
+  html[data-theme="light"]{
+    --bg:#F2F4F8;
+    --card:#FFFFFF;
+    --ink:#0B1830;
+    --ink-soft:#33403C;
+    --muted:#68738A;
+    --line:#E1E6EE;
+    --header-bg:#003478;
+    --header-bg2:#00295E;
+    --header-ink:#EAF0FF;
+    --header-muted:#B7C6E6;
+    --shadow: 0 1px 2px rgba(11,24,48,0.05), 0 8px 24px -12px rgba(11,24,48,0.14);
+    --accent:#003478;
+  }
+  html[data-theme="dark"]{
+    --bg:#0A0F1C;
+    --card:#121B30;
+    --ink:#EBF0FA;
+    --ink-soft:#C9D3E6;
+    --muted:#8896AC;
+    --line:#223049;
+    --header-bg:#00095B;
+    --header-bg2:#050B2E;
+    --header-ink:#EAF0FF;
+    --header-muted:#93A3C9;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --accent:#4C86E0;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--paper);
+    background:var(--bg);
     color:var(--ink);
     font-family:'Inter',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
+    transition:background .2s, color .2s;
   }
   h1,h2,h3,.num{font-family:'Manrope',system-ui,sans-serif;}
 
   /* ---------- Header ---------- */
   header.topbar{
-    background:var(--ink);
-    color:#fff;
+    background:linear-gradient(135deg, var(--header-bg), var(--header-bg2));
+    color:var(--header-ink);
     padding:22px 32px 20px;
   }
   .topbar-inner{
-    max-width:1320px;
+    max-width:1360px;
     margin:0 auto;
     display:flex;
     align-items:center;
@@ -48,23 +70,45 @@
     flex-wrap:wrap;
     gap:16px;
   }
-  .brand{display:flex;align-items:center;gap:14px;}
-  .brand img{height:34px;width:auto;display:block;}
+  .brand{display:flex;align-items:center;gap:18px;}
+  .logos{display:flex;align-items:center;gap:14px;}
+  .logos img{display:block;}
+  .logo-cardinal{height:46px;width:auto;}
+  .logo-divider{width:1px;height:34px;background:rgba(255,255,255,0.25);}
+  .logo-ford{
+    height:40px;width:auto;
+    background:#fff;
+    padding:5px 10px;
+    border-radius:8px;
+    display:block;
+  }
   .brand-text h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-0.01em;}
-  .brand-text p{margin:2px 0 0;font-size:12.5px;color:#C9C8C3;}
-  .updated{font-size:12px;color:#C9C8C3;text-align:right;}
+  .brand-text p{margin:2px 0 0;font-size:12.5px;color:var(--header-muted);}
+  .header-right{display:flex;align-items:center;gap:14px;}
+  .updated{font-size:12px;color:var(--header-muted);text-align:right;}
   .updated strong{color:#fff;font-weight:600;}
+  .theme-toggle{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.22);
+    color:#fff;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:16px;
+    cursor:pointer;
+    line-height:1;
+  }
+  .theme-toggle:hover{background:rgba(255,255,255,0.18);}
 
   /* ---------- Filter bar ---------- */
   .filterbar{
-    max-width:1320px;
+    max-width:1360px;
     margin:16px auto 0;
     display:flex;
     gap:10px;
     flex-wrap:wrap;
     align-items:center;
   }
-  .filterbar .flabel{font-size:12px;color:#C9C8C3;margin-right:2px;}
+  .filterbar .flabel{font-size:12px;color:var(--header-muted);margin-right:2px;}
   .msel{position:relative;}
   .msel button.msel-btn{
     background:rgba(255,255,255,0.08);
@@ -87,7 +131,7 @@
     position:absolute;
     top:calc(100% + 6px);
     left:0;
-    background:#fff;
+    background:var(--card);
     color:var(--ink);
     border-radius:12px;
     box-shadow:0 12px 32px rgba(0,0,0,0.25);
@@ -108,20 +152,20 @@
     font-size:13px;
     cursor:pointer;
   }
-  .msel-opt:hover{background:var(--paper);}
-  .msel-opt input{accent-color:var(--teal);width:15px;height:15px;}
+  .msel-opt:hover{background:var(--bg);}
+  .msel-opt input{accent-color:var(--accent);width:15px;height:15px;}
   .msel-actions{
     display:flex;justify-content:space-between;
     padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:4px;
   }
   .msel-actions button{
-    background:none;border:none;color:var(--teal);font-size:12px;
+    background:none;border:none;color:var(--accent);font-size:12px;
     font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
   }
   .reset-btn{
     background:none;
     border:1px solid rgba(255,255,255,0.2);
-    color:#C9C8C3;
+    color:var(--header-muted);
     border-radius:10px;
     padding:8px 14px;
     font-size:12.5px;
@@ -132,7 +176,7 @@
   .count-pill{
     margin-left:auto;
     font-size:12.5px;
-    color:#C9C8C3;
+    color:var(--header-muted);
     background:rgba(255,255,255,0.08);
     border-radius:20px;
     padding:7px 14px;
@@ -140,22 +184,22 @@
   .count-pill strong{color:#fff;}
 
   /* ---------- Main layout ---------- */
-  main{max-width:1320px;margin:0 auto;padding:26px 32px 60px;}
+  main{max-width:1360px;margin:0 auto;padding:26px 32px 60px;}
   .section-title{
     font-size:13px;
     text-transform:uppercase;
     letter-spacing:0.06em;
     color:var(--muted);
     font-weight:700;
-    margin:0 0 14px;
+    margin:28px 0 14px;
   }
+  .section-title:first-child{margin-top:0;}
 
   /* ---------- KPI cards ---------- */
   .kpis{
     display:grid;
     grid-template-columns:repeat(5,1fr);
     gap:16px;
-    margin-bottom:34px;
   }
   .kpi-card{
     background:var(--card);
@@ -171,13 +215,15 @@
   .kpi-ring canvas{width:56px!important;height:56px!important;}
   .kpi-ring .ring-val{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-size:12.5px;font-weight:800;font-family:'Manrope',sans-serif;
+    font-size:11px;font-weight:800;font-family:'Manrope',sans-serif;
   }
   .kpi-label{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.3;}
-  .kpi-num{font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+  .kpi-num{font-size:24px;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+  .kpi-num small{font-size:13px;font-weight:700;color:var(--muted);}
+  .kpi-sub{font-size:12px;color:var(--muted);margin-top:1px;}
   .kpi-breakdown{display:flex;flex-direction:column;gap:5px;margin-top:2px;}
   .kpi-bar-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);}
-  .kpi-bar-track{flex:1;height:6px;border-radius:4px;background:var(--paper);overflow:hidden;}
+  .kpi-bar-track{flex:1;height:6px;border-radius:4px;background:var(--bg);overflow:hidden;}
   .kpi-bar-fill{height:100%;border-radius:4px;}
   .kpi-bar-pct{width:34px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);}
   .kpi-bar-name{width:76px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -202,6 +248,41 @@
   .empty-note{
     text-align:center;color:var(--muted);font-size:13px;padding:60px 20px;
   }
+  .nps-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}
+  .nps-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft);}
+  .nps-legend-dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .nps-legend-item b{font-variant-numeric:tabular-nums;}
+
+  /* ---------- Comentarios ---------- */
+  .comments-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .comments-card{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:20px 22px;
+  }
+  .comments-card h3{font-size:14.5px;font-weight:700;margin:0 0 2px;}
+  .comments-card .chart-sub{font-size:11.5px;color:var(--muted);margin:0 0 12px;}
+  .acc-item{border-top:1px solid var(--line);}
+  .acc-item:first-child{border-top:none;}
+  .acc-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 2px; cursor:pointer; gap:10px;
+  }
+  .acc-head:hover{opacity:0.75;}
+  .acc-head .name{font-size:13px;font-weight:600;}
+  .acc-head .count{
+    font-size:11.5px;color:var(--muted);background:var(--bg);
+    border-radius:20px; padding:3px 10px; flex:none;
+  }
+  .acc-head .chev{font-size:11px;color:var(--muted);transition:transform .15s;}
+  .acc-item.open .acc-head .chev{transform:rotate(180deg);}
+  .acc-body{display:none; padding:0 2px 14px;}
+  .acc-item.open .acc-body{display:block;}
+  .comment-line{
+    font-size:12.5px; color:var(--ink-soft); line-height:1.5;
+    padding:8px 12px; margin-bottom:6px; background:var(--bg); border-radius:9px;
+    border-left:3px solid var(--teal);
+  }
+  .comment-line .meta{display:block; font-size:10.5px; color:var(--muted); margin-top:3px;}
 
   footer{
     text-align:center;padding:26px 20px 40px;color:var(--muted);font-size:12px;
@@ -210,6 +291,7 @@
   @media (max-width:1100px){
     .kpis{grid-template-columns:repeat(3,1fr);}
     .charts-grid{grid-template-columns:1fr;}
+    .comments-grid{grid-template-columns:1fr;}
   }
   @media (max-width:680px){
     .kpis{grid-template-columns:repeat(2,1fr);}
@@ -223,13 +305,20 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <img src="logo.png" alt="Logo">
+      <div class="logos">
+        <img class="logo-cardinal" src="logo.png" alt="Cardinal Assistance">
+        <div class="logo-divider"></div>
+        <img class="logo-ford" src="ford-logo.png" alt="Ford">
+      </div>
       <div class="brand-text">
         <h1>Panel de Satisfacción · Ford Assistance</h1>
         <p>Experiencia de asistencia en ruta — resultados de encuesta</p>
       </div>
     </div>
-    <div class="updated">Datos actualizados<br><strong id="updatedAt">—</strong></div>
+    <div class="header-right">
+      <div class="updated">Datos actualizados<br><strong id="updatedAt">—</strong></div>
+      <button class="theme-toggle" id="themeToggle" title="Cambiar tema" type="button">🌙</button>
+    </div>
   </div>
   <div class="filterbar" id="filterbar">
     <span class="flabel">Filtrar por</span>
@@ -249,15 +338,16 @@
       <h3>Nivel de Recomendación</h3>
       <p class="chart-sub" id="npsSub">NPS —</p>
       <div class="chart-wrap"><canvas id="chartNps"></canvas></div>
+      <div class="nps-legend" id="npsLegend"></div>
     </div>
     <div class="chart-card">
       <h3>NPS por Modelo</h3>
-      <p class="chart-sub">Promotor / Neutral / Detractor por modelo</p>
+      <p class="chart-sub">Promotor / Neutral / Detractor — % por modelo</p>
       <div class="chart-wrap"><canvas id="chartNpsModelo"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>Ranking por Modelo</h3>
-      <p class="chart-sub">Casos por modelo de vehículo</p>
+      <p class="chart-sub">% de casos por modelo de vehículo</p>
       <div class="chart-wrap"><canvas id="chartModelo"></canvas></div>
     </div>
     <div class="chart-card">
@@ -267,7 +357,7 @@
     </div>
     <div class="chart-card">
       <h3>Ranking por Tipo de Problema</h3>
-      <p class="chart-sub">Motivos más frecuentes de asistencia</p>
+      <p class="chart-sub">% de casos por motivo de asistencia</p>
       <div class="chart-wrap"><canvas id="chartProblema"></canvas></div>
     </div>
     <div class="chart-card">
@@ -275,10 +365,29 @@
       <p class="chart-sub">Distribución por tramo de demora</p>
       <div class="chart-wrap"><canvas id="chartDemora"></canvas></div>
     </div>
+    <div class="chart-card">
+      <h3>Ranking por Tipo de Servicio</h3>
+      <p class="chart-sub">% de casos por tipo de móvil asignado</p>
+      <div class="chart-wrap"><canvas id="chartTipoServicio"></canvas></div>
+    </div>
     <div class="chart-card wide">
       <h3>Ranking por Kilometraje</h3>
-      <p class="chart-sub">Distribución por tramo de kilometraje del servicio</p>
+      <p class="chart-sub">% de casos por tramo de kilometraje del servicio</p>
       <div class="chart-wrap"><canvas id="chartKm"></canvas></div>
+    </div>
+  </section>
+
+  <p class="section-title">Comentarios de clientes</p>
+  <section class="comments-grid">
+    <div class="comments-card">
+      <h3>Comentarios de la encuesta</h3>
+      <p class="chart-sub">Agrupados por categoría — hacé clic para expandir</p>
+      <div id="accComentarios"></div>
+    </div>
+    <div class="comments-card">
+      <h3>Sugerencias de mejora</h3>
+      <p class="chart-sub">Qué le faltó al cliente para una experiencia excelente</p>
+      <div id="accMejoras"></div>
     </div>
   </section>
 </main>
@@ -286,12 +395,25 @@
 <footer>Panel generado a partir de la base de datos mensual de encuestas de satisfacción.</footer>
 
 <script>
+/* ============ Tema claro/oscuro ============ */
+(function initTheme(){
+  const saved = localStorage.getItem('panelTheme');
+  const theme = saved || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+function currentTheme(){ return document.documentElement.getAttribute('data-theme'); }
+
 /* ============ Diseño / paleta ============ */
-const COLORS = { teal:'#12A79C', tealSoft:'#5FC4BB', orange:'#EE9324', pink:'#E61C5C', line:'#E6E4DE', muted:'#7A7972', ink:'#1C1C1E' };
+const COLORS = { teal:'#12A79C', tealSoft:'#5FC4BB', orange:'#EE9324', pink:'#E61C5C',
+  fordBlue:'#003478', fordDeep:'#00095B' };
+
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 
 // Mapeo semántico de categorías conocidas -> color
 function catColor(v){
-  if(!v) return COLORS.muted;
+  if(!v) return cssVar('--muted');
   const s = String(v).toUpperCase();
   if(['SI','MUY SATISFECHO','CONFÍO','PROMOTOR','RESPONDIÓ'].includes(s)) return COLORS.teal;
   if(['SATISFECHO'].includes(s)) return COLORS.tealSoft;
@@ -308,14 +430,53 @@ if (typeof Chart === 'undefined') {
   });
   throw new Error('Chart.js no disponible: falta chart.umd.min.js junto a index.html');
 }
+
+/* Plugin propio para etiquetas en las barras (sin depender de otra librería externa) */
+const barLabelsPlugin = {
+  id: 'barLabels',
+  afterDatasetsDraw(chart, args, opts){
+    if(!opts || !opts.enabled) return;
+    const {ctx} = chart;
+    chart.data.datasets.forEach((dataset, dsIndex)=>{
+      const meta = chart.getDatasetMeta(dsIndex);
+      if(meta.hidden) return;
+      meta.data.forEach((el, i)=>{
+        const value = dataset.data[i];
+        if(value===undefined || value===null) return;
+        const text = opts.formatter ? opts.formatter(value, dsIndex, i, dataset) : String(value);
+        if(!text) return;
+        const props = el.getProps(['x','y','base'], true);
+        ctx.save();
+        ctx.font = "600 11px Inter, system-ui, sans-serif";
+        ctx.textBaseline = 'middle';
+        if(opts.stacked){
+          const segWidth = Math.abs(props.x - props.base);
+          if(segWidth < (opts.minWidth || 26)){ ctx.restore(); return; }
+          ctx.textAlign = 'center';
+          ctx.fillStyle = opts.onColor || '#fff';
+          ctx.fillText(text, (props.x + props.base)/2, props.y);
+        } else {
+          ctx.textAlign = 'left';
+          ctx.fillStyle = opts.color || cssVar('--ink-soft');
+          ctx.fillText(text, props.x + 6, props.y);
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+Chart.register(barLabelsPlugin);
+
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = COLORS.muted;
+function applyChartThemeDefaults(){
+  Chart.defaults.color = cssVar('--muted');
+}
 
 /* ============ Estado ============ */
-let RAW = [];               // todos los registros
+let RAW = [];
 let FILTERS = { mes:[], modelo:[], provincia:[] };
-let CHARTS = {};             // instancias Chart.js activas para poder destruirlas al refiltrar
+let CHARTS = {};
 
 /* ============ Utilidades de agregación ============ */
 function applyFilters(records){
@@ -334,16 +495,24 @@ function countBy(records, field){
   }
   return out;
 }
-function sortDesc(obj){
-  return Object.entries(obj).sort((a,b)=>b[1]-a[1]);
-}
+function sortDesc(obj){ return Object.entries(obj).sort((a,b)=>b[1]-a[1]); }
 function pct(n,d){ return d>0 ? (n/d*100) : 0; }
+function avgOf(records, field){
+  const vals = records.map(r=>r[field]).filter(v=>v!==null && v!==undefined && !isNaN(v));
+  if(vals.length===0) return null;
+  return vals.reduce((a,b)=>a+b,0) / vals.length;
+}
+function toPctObj(countObj){
+  const total = Object.values(countObj).reduce((a,b)=>a+b,0);
+  const out = {};
+  for(const [k,v] of Object.entries(countObj)) out[k] = total>0 ? (v/total*100) : 0;
+  return out;
+}
 
 /* ============ Filtros (dropdowns) ============ */
 function uniqueSorted(records, field){
   return [...new Set(records.map(r=>r[field]).filter(v=>v!==null && v!==undefined && v!==''))].sort();
 }
-
 function buildMultiSelect(id, label, options){
   const wrap = document.createElement('div');
   wrap.className = 'msel';
@@ -365,13 +534,11 @@ function buildMultiSelect(id, label, options){
     </div>`;
   return wrap;
 }
-
 function wireMultiSelect(wrap, filterKey){
   const btn = wrap.querySelector('.msel-btn');
   const labelEl = wrap.querySelector('.msel-label');
   const baseLabel = labelEl.textContent.split(':')[0];
   const checkboxes = [...wrap.querySelectorAll('input[type=checkbox]')];
-
   function refreshLabel(){
     const n = checkboxes.filter(c=>c.checked).length;
     labelEl.textContent = n===0 ? `${baseLabel}: Todos` : `${baseLabel}: ${n} sel.`;
@@ -381,7 +548,6 @@ function wireMultiSelect(wrap, filterKey){
     refreshLabel();
     renderAll();
   }
-
   btn.addEventListener('click', (e)=>{
     e.stopPropagation();
     document.querySelectorAll('.msel.open').forEach(m=>{ if(m!==wrap) m.classList.remove('open'); });
@@ -395,28 +561,23 @@ function wireMultiSelect(wrap, filterKey){
     checkboxes.forEach(c=>c.checked=false); syncFilterAndRender();
   });
 }
-
 document.addEventListener('click', ()=> {
   document.querySelectorAll('.msel.open').forEach(m=>m.classList.remove('open'));
 });
-
 function setupFilters(){
   const bar = document.getElementById('filterbar');
   const resetBtn = document.getElementById('resetBtn');
-
   const defs = [
     {id:'fMes', key:'mes', label:'Mes', field:'mes'},
     {id:'fModelo', key:'modelo', label:'Modelo', field:'modelo'},
     {id:'fProvincia', key:'provincia', label:'Provincia', field:'provincia'},
   ];
-
   defs.forEach(d=>{
     const opts = uniqueSorted(RAW, d.field);
     const el = buildMultiSelect(d.id, d.label, opts);
     bar.insertBefore(el, resetBtn);
     wireMultiSelect(el, d.key);
   });
-
   resetBtn.addEventListener('click', ()=>{
     document.querySelectorAll('.msel input[type=checkbox]').forEach(c=>c.checked=false);
     document.querySelectorAll('.msel-label').forEach(l=> l.textContent = l.textContent.split(':')[0] + ': Todos');
@@ -425,11 +586,25 @@ function setupFilters(){
   });
 }
 
+/* ============ Tema ============ */
+function setupTheme(){
+  const btn = document.getElementById('themeToggle');
+  function paintIcon(){ btn.textContent = currentTheme()==='dark' ? '☀️' : '🌙'; }
+  paintIcon();
+  btn.addEventListener('click', ()=>{
+    const next = currentTheme()==='dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('panelTheme', next);
+    paintIcon();
+    applyChartThemeDefaults();
+    renderAll(); // recrear charts con colores del nuevo tema
+  });
+}
+
 /* ============ KPIs ============ */
 const KPI_DEFS = [
   {
-    key:'resuelto', label:'Resolución del Problema',
-    positive:['Si'],
+    key:'resuelto', label:'Resolución del Problema', kind:'pct',
     calc(records){
       const c = countBy(records,'resuelto');
       const total = Object.values(c).reduce((a,b)=>a+b,0);
@@ -437,25 +612,25 @@ const KPI_DEFS = [
     }
   },
   {
-    key:'satAtencion', label:'Satisfacción de Atención',
+    key:'satAtencion', label:'Satisfacción de Atención', kind:'avg5',
     calc(records){
+      const avg = avgOf(records,'avgAtencion');
       const c = countBy(records,'satAtencion');
       const total = Object.values(c).reduce((a,b)=>a+b,0);
-      const pos = (c['Muy satisfecho']||0) + (c['Satisfecho']||0);
-      return {headline: pct(pos,total), breakdown: sortDesc(c), total};
+      return {avg, breakdown: sortDesc(c), total};
     }
   },
   {
-    key:'satAgente', label:'Satisfacción Desempeño Agente',
+    key:'satAgente', label:'Satisfacción Desempeño Agente', kind:'avg5',
     calc(records){
+      const avg = avgOf(records,'avgAgente');
       const c = countBy(records,'satAgente');
       const total = Object.values(c).reduce((a,b)=>a+b,0);
-      const pos = (c['Muy satisfecho']||0) + (c['Satisfecho']||0);
-      return {headline: pct(pos,total), breakdown: sortDesc(c), total};
+      return {avg, breakdown: sortDesc(c), total};
     }
   },
   {
-    key:'confianza', label:'Confianza en Ford',
+    key:'confianza', label:'Confianza en Ford', kind:'pct',
     calc(records){
       const c = countBy(records,'confianza');
       const total = Object.values(c).reduce((a,b)=>a+b,0);
@@ -463,7 +638,7 @@ const KPI_DEFS = [
     }
   },
   {
-    key:'respondio', label:'Nivel de Respuesta',
+    key:'respondio', label:'Nivel de Respuesta', kind:'pct',
     calc(records){
       const c = countBy(records,'respondio');
       const total = Object.values(c).reduce((a,b)=>a+b,0);
@@ -477,20 +652,31 @@ function renderKpis(records){
   const section = document.getElementById('kpiSection');
   section.innerHTML = '';
   KPI_DEFS.forEach(def=>{
-    const {headline, breakdown, total} = def.calc(records);
+    const r = def.calc(records);
+    const total = r.total;
+    let ringPct, numHtml, subHtml='';
+    if(def.kind==='avg5'){
+      ringPct = r.avg!==null ? (r.avg/5*100) : 0;
+      numHtml = r.avg!==null ? `${r.avg.toFixed(1)}<small> /5</small>` : '—';
+      subHtml = r.avg!==null ? `≈ ${Math.round(ringPct)}%` : 'Sin respuestas';
+    } else {
+      ringPct = r.headline;
+      numHtml = total ? `${Math.round(r.headline)}%` : '—';
+    }
     const card = document.createElement('div');
     card.className = 'kpi-card';
     const ringId = 'ring_' + def.key;
     card.innerHTML = `
       <div class="kpi-top">
-        <div class="kpi-ring"><canvas id="${ringId}"></canvas><div class="ring-val">${total? Math.round(headline)+'%':'—'}</div></div>
+        <div class="kpi-ring"><canvas id="${ringId}"></canvas><div class="ring-val">${total? Math.round(ringPct)+'%':'—'}</div></div>
         <div>
           <div class="kpi-label">${def.label}</div>
-          <div class="kpi-num">${total? Math.round(headline)+'%':'—'}</div>
+          <div class="kpi-num">${numHtml}</div>
+          ${subHtml ? `<div class="kpi-sub">${subHtml}</div>` : ''}
         </div>
       </div>
       <div class="kpi-breakdown">
-        ${breakdown.map(([name,n])=>{
+        ${r.breakdown.map(([name,n])=>{
           const p = pct(n,total);
           return `<div class="kpi-bar-row">
             <span class="kpi-bar-name">${name}</span>
@@ -505,30 +691,32 @@ function renderKpis(records){
     if(CHARTS[ringId]) CHARTS[ringId].destroy();
     CHARTS[ringId] = new Chart(ctx, {
       type:'doughnut',
-      data:{ datasets:[{ data:[headline, 100-headline], backgroundColor:[COLORS.teal, COLORS.line], borderWidth:0 }] },
-      options:{ cutout:'72%', plugins:{legend:{display:false}, tooltip:{enabled:false}}, animation:{duration:400} }
+      data:{ datasets:[{ data:[ringPct, 100-ringPct], backgroundColor:[COLORS.fordBlue, cssVar('--line')], borderWidth:0 }] },
+      options:{ cutout:'72%', plugins:{legend:{display:false}, tooltip:{enabled:false}}, animation:{duration:300} }
     });
   });
 }
 
-/* ============ Gráficos ============ */
-function barChart(canvasId, dataObj, opts={}){
-  const entries = sortDesc(dataObj);
+/* ============ Gráficos de ranking (% + etiquetas) ============ */
+function pctBarChart(canvasId, dataObj, opts={}){
+  const pctObj = toPctObj(dataObj);
+  const entries = sortDesc(pctObj);
   const el = document.getElementById(canvasId);
   const wrap = el.closest('.chart-wrap');
+  wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
   if(entries.length===0){
     wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
     return;
   }
-  const ctx = el.getContext('2d');
+  const ctx = document.getElementById(canvasId).getContext('2d');
   if(CHARTS[canvasId]) CHARTS[canvasId].destroy();
   CHARTS[canvasId] = new Chart(ctx, {
     type:'bar',
     data:{
       labels: entries.map(e=>e[0]),
       datasets:[{
-        data: entries.map(e=>e[1]),
-        backgroundColor: opts.color || COLORS.teal,
+        data: entries.map(e=>Math.round(e[1]*10)/10),
+        backgroundColor: opts.color || COLORS.fordBlue,
         borderRadius:5,
         maxBarThickness:26,
       }]
@@ -536,10 +724,47 @@ function barChart(canvasId, dataObj, opts={}){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{callbacks:{label:(c)=> ` ${c.parsed.x} casos`}} },
+      layout:{padding:{right:38}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(c)=> ` ${c.parsed.x}%`}},
+        barLabels:{ enabled:true, formatter:(v)=> v+'%' }
+      },
       scales:{
-        x:{ grid:{color:COLORS.line}, ticks:{precision:0} },
+        x:{ grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'}, suggestedMax: Math.min(100, Math.max(...entries.map(e=>e[1]))*1.2) },
+        y:{ grid:{display:false} }
+      }
+    }
+  });
+}
+function countBarChart(canvasId, dataObj, opts={}){
+  const entries = sortDesc(dataObj);
+  const el = document.getElementById(canvasId);
+  const wrap = el.closest('.chart-wrap');
+  wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+  if(entries.length===0){
+    wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
+    return;
+  }
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if(CHARTS[canvasId]) CHARTS[canvasId].destroy();
+  CHARTS[canvasId] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: entries.map(e=>e[0]),
+      datasets:[{
+        data: entries.map(e=>e[1]),
+        backgroundColor: opts.color || COLORS.tealSoft,
+        borderRadius:5,
+        maxBarThickness:26,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:(c)=> ` ${c.parsed.x} casos`}} },
+      scales:{
+        x:{ grid:{color:cssVar('--line')}, ticks:{precision:0} },
         y:{ grid:{display:false} }
       }
     }
@@ -553,15 +778,23 @@ function renderNps(records){
   const present = order.filter(k=>c[k]!==undefined);
   const sub = document.getElementById('npsSub');
   const wrap = document.getElementById('chartNps').closest('.chart-wrap');
+  const legend = document.getElementById('npsLegend');
+  wrap.innerHTML = '<canvas id="chartNps"></canvas>';
 
   if(total===0){
     sub.textContent = 'NPS —';
     wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
+    legend.innerHTML = '';
     return;
   }
   const promPct = pct(c['Promotor']||0, total);
   const detPct = pct(c['Detractor']||0, total);
   sub.textContent = `NPS ${Math.round(promPct - detPct)}`;
+
+  legend.innerHTML = present.map(k=>{
+    const p = Math.round(pct(c[k], total));
+    return `<div class="nps-legend-item"><span class="nps-legend-dot" style="background:${catColor(k)}"></span>${k}: <b>${c[k]}</b> (${p}%)</div>`;
+  }).join('');
 
   const ctx = document.getElementById('chartNps').getContext('2d');
   if(CHARTS.chartNps) CHARTS.chartNps.destroy();
@@ -573,7 +806,11 @@ function renderNps(records){
     },
     options:{
       cutout:'62%',
-      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, padding:14}} }
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const v = ctx.parsed; const p = Math.round(pct(v,total));
+          return ` ${ctx.label}: ${v} (${p}%)`;
+        }}} }
     }
   });
 }
@@ -583,20 +820,20 @@ function renderNpsPorModelo(records){
   const cats = ['Promotor','Neutral','Detractor'];
   const el = document.getElementById('chartNpsModelo');
   const wrap = el.closest('.chart-wrap');
+  wrap.innerHTML = '<canvas id="chartNpsModelo"></canvas>';
   if(modelos.length===0){
     wrap.innerHTML = '<p class="empty-note">Sin datos para los filtros seleccionados.</p>';
     return;
   }
-  const byModelo = modelos.map(m=>{
+  const byModeloPct = modelos.map(m=>{
     const sub = records.filter(r=>r.modelo===m);
-    return countBy(sub,'recomendacion');
+    return toPctObj(countBy(sub,'recomendacion'));
   });
-  // orden por total de casos desc
-  const totals = byModelo.map(c=>Object.values(c).reduce((a,b)=>a+b,0));
+  const totals = modelos.map(m=> records.filter(r=>r.modelo===m).length);
   const idx = modelos.map((_,i)=>i).sort((a,b)=>totals[b]-totals[a]);
   const labels = idx.map(i=>modelos[i]);
 
-  const ctx = el.getContext('2d');
+  const ctx = document.getElementById('chartNpsModelo').getContext('2d');
   if(CHARTS.chartNpsModelo) CHARTS.chartNpsModelo.destroy();
   CHARTS.chartNpsModelo = new Chart(ctx, {
     type:'bar',
@@ -604,7 +841,7 @@ function renderNpsPorModelo(records){
       labels,
       datasets: cats.map(cat=>({
         label:cat,
-        data: idx.map(i=>byModelo[i][cat]||0),
+        data: idx.map(i=> Math.round((byModeloPct[i][cat]||0)*10)/10),
         backgroundColor: catColor(cat),
         borderRadius:4,
         maxBarThickness:16,
@@ -613,28 +850,76 @@ function renderNpsPorModelo(records){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10,padding:14}} },
-      scales:{ x:{stacked:true, grid:{color:COLORS.line}, ticks:{precision:0}}, y:{stacked:true, grid:{display:false}} }
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10,padding:14}},
+        tooltip:{callbacks:{label:(c)=> ` ${c.dataset.label}: ${c.parsed.x}%`}},
+        barLabels:{ enabled:true, stacked:true, minWidth:22, onColor:'#fff', formatter:(v)=> v>=6 ? Math.round(v)+'%' : '' }
+      },
+      scales:{
+        x:{ stacked:true, max:100, grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'} },
+        y:{ stacked:true, grid:{display:false} }
+      }
     }
+  });
+}
+
+/* ============ Comentarios (acordeón) ============ */
+function renderAccordion(containerId, records, catField, textField){
+  const container = document.getElementById(containerId);
+  const groups = {};
+  records.forEach(r=>{
+    const cat = r[catField];
+    const text = r[textField];
+    if(!cat || cat.toLowerCase().includes('sin comentario')) return;
+    if(!text) return;
+    if(!groups[cat]) groups[cat] = [];
+    groups[cat].push({text, mes:r.mes, modelo:r.modelo});
+  });
+  const entries = Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  if(entries.length===0){
+    container.innerHTML = '<p class="empty-note" style="padding:24px 0;">Sin comentarios para los filtros seleccionados.</p>';
+    return;
+  }
+  container.innerHTML = entries.map(([cat, items], idx)=>`
+    <div class="acc-item" data-idx="${idx}">
+      <div class="acc-head">
+        <span class="name">${cat}</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span class="count">${items.length}</span>
+          <span class="chev">▾</span>
+        </span>
+      </div>
+      <div class="acc-body">
+        ${items.map(it=>`<div class="comment-line">“${it.text}”<span class="meta">${it.modelo||''} · ${it.mes||''}</span></div>`).join('')}
+      </div>
+    </div>`).join('');
+  container.querySelectorAll('.acc-head').forEach(head=>{
+    head.addEventListener('click', ()=> head.closest('.acc-item').classList.toggle('open'));
   });
 }
 
 /* ============ Render principal ============ */
 function renderAll(){
+  applyChartThemeDefaults();
   const records = applyFilters(RAW);
   document.getElementById('countCasos').textContent = records.length;
 
   renderKpis(records);
   renderNps(records);
   renderNpsPorModelo(records);
-  barChart('chartModelo', countBy(records,'modelo'), {color:COLORS.teal});
-  barChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.teal});
-  barChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange});
-  barChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
-  barChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.tealSoft});
+  pctBarChart('chartModelo', countBy(records,'modelo'), {color:COLORS.fordBlue});
+  countBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft});
+  pctBarChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange});
+  countBarChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
+  pctBarChart('chartTipoServicio', countBy(records,'tipoMovil'), {color:COLORS.fordBlue});
+  pctBarChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.orange});
+
+  renderAccordion('accComentarios', records, 'categoriaComentario', 'comentario');
+  renderAccordion('accMejoras', records, 'categoriaMejora', 'mejora');
 }
 
 /* ============ Carga inicial ============ */
+setupTheme();
 fetch('data.json', {cache:'no-store'})
   .then(r=>r.json())
   .then(data=>{
