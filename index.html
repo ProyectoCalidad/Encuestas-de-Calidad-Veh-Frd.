@@ -73,18 +73,19 @@
   .brand{display:flex;align-items:center;gap:18px;}
   .logos{display:flex;align-items:center;gap:14px;}
   .logos img{display:block;}
-  .logo-cardinal{height:52px;width:auto;}
+  .logo-cardinal{height:58px;width:auto;}
   .logo-divider{width:1px;height:34px;background:rgba(255,255,255,0.25);}
   .logo-ford-box{
-    height:84px;width:190px;
+    height:96px;width:220px;
     background:#fff;
     border-radius:10px;
     display:flex;align-items:center;justify-content:center;
-    padding:10px 14px;
+    padding:12px;
+    flex:none;
   }
   .logo-ford-box img{
     max-height:100%;max-width:100%;
-    display:block;object-fit:contain;
+    display:block;margin:auto;object-fit:contain;
   }
   .brand-text h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-0.01em;}
   .brand-text p{margin:2px 0 0;font-size:12.5px;color:var(--header-muted);}
@@ -705,7 +706,13 @@ function renderKpis(records){
 /* ============ Gráficos de ranking (% + etiquetas) ============ */
 function pctBarChart(canvasId, dataObj, opts={}){
   const pctObj = toPctObj(dataObj);
-  const entries = sortDesc(pctObj);
+  let entries = sortDesc(pctObj);
+  if(opts.maxItems && entries.length > opts.maxItems){
+    const top = entries.slice(0, opts.maxItems - 1);
+    const rest = entries.slice(opts.maxItems - 1);
+    const restPct = rest.reduce((a,[,v])=>a+v, 0);
+    entries = [...top, [`Otras (${rest.length})`, restPct]];
+  }
   const el = document.getElementById(canvasId);
   const wrap = el.closest('.chart-wrap');
   wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
@@ -913,8 +920,8 @@ function renderAll(){
   renderNps(records);
   renderNpsPorModelo(records);
   pctBarChart('chartModelo', countBy(records,'modelo'), {color:COLORS.fordBlue});
-  pctBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft});
-  pctBarChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange});
+  pctBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft, maxItems:7});
+  pctBarChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange, maxItems:7});
   pctBarChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
   pctBarChart('chartTipoServicio', countBy(records,'tipoMovil'), {color:COLORS.fordBlue});
   pctBarChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.orange});
