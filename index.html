@@ -76,11 +76,11 @@
   .logo-cardinal{height:58px;width:auto;}
   .logo-divider{width:1px;height:34px;background:rgba(255,255,255,0.25);}
   .logo-ford-box{
-    height:96px;width:220px;
+    height:58px;width:58px;
     background:#fff;
     border-radius:10px;
     display:flex;align-items:center;justify-content:center;
-    padding:12px;
+    padding:7px;
     flex:none;
   }
   .logo-ford-box img{
@@ -254,10 +254,17 @@
   .empty-note{
     text-align:center;color:var(--muted);font-size:13px;padding:60px 20px;
   }
-  .nps-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}
-  .nps-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft);}
-  .nps-legend-dot{width:9px;height:9px;border-radius:50%;flex:none;}
-  .nps-legend-item b{font-variant-numeric:tabular-nums;}
+  .nps-row{display:flex;align-items:center;gap:22px;height:260px;}
+  .nps-donut-wrap{flex:1 1 auto;height:220px!important;min-width:0;}
+  .nps-legend{display:flex;flex-direction:column;gap:14px;flex:0 0 auto;}
+  .nps-legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+  .nps-legend-dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .nps-legend-item b{font-variant-numeric:tabular-nums;font-size:14px;}
+  @media (max-width:520px){
+    .nps-row{flex-direction:column;height:auto;}
+    .nps-donut-wrap{width:100%;}
+    .nps-legend{flex-direction:row;flex-wrap:wrap;gap:12px 16px;}
+  }
 
   /* ---------- Comentarios ---------- */
   .comments-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
@@ -305,7 +312,7 @@
     main{padding:20px 16px 40px;}
     .logo-cardinal{height:34px;}
     .logo-divider{height:24px;}
-    .logo-ford-box{height:52px;width:110px;padding:7px;}
+    .logo-ford-box{height:34px;width:34px;padding:4px;}
     .logos{gap:10px;}
     .brand{gap:10px;flex-wrap:wrap;}
     .brand-text h1{font-size:16px;}
@@ -313,7 +320,7 @@
   }
   @media (max-width:420px){
     .logo-cardinal{height:28px;}
-    .logo-ford-box{height:44px;width:92px;}
+    .logo-ford-box{height:28px;width:28px;padding:3px;}
   }
 </style>
 </head>
@@ -354,8 +361,10 @@
     <div class="chart-card">
       <h3>Nivel de Recomendación</h3>
       <p class="chart-sub" id="npsSub">NPS —</p>
-      <div class="chart-wrap"><canvas id="chartNps"></canvas></div>
-      <div class="nps-legend" id="npsLegend"></div>
+      <div class="nps-row">
+        <div class="chart-wrap nps-donut-wrap"><canvas id="chartNps"></canvas></div>
+        <div class="nps-legend" id="npsLegend"></div>
+      </div>
     </div>
     <div class="chart-card">
       <h3>NPS por Modelo</h3>
