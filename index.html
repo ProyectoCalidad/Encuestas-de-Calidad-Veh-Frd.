@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ford Assistance · Panel de Satisfacción</title>
+<title>Ford Assistance · Panel de Resultados de Encuesta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -335,7 +335,7 @@
         <div class="logo-ford-box"><img src="ford-logo.png" alt="Ford"></div>
       </div>
       <div class="brand-text">
-        <h1>Panel de Satisfacción · Ford Assistance</h1>
+        <h1>Panel de Resultados de Encuesta · Ford Assistance</h1>
         <p>Experiencia de asistencia en ruta — resultados de encuesta</p>
       </div>
     </div>
@@ -373,32 +373,32 @@
     </div>
     <div class="chart-card">
       <h3>Ranking por Modelo</h3>
-      <p class="chart-sub">% de casos por modelo de vehículo</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por modelo de vehículo</p>
       <div class="chart-wrap"><canvas id="chartModelo"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>Ranking por Provincia</h3>
-      <p class="chart-sub">% de casos por provincia de inicio</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por provincia de inicio</p>
       <div class="chart-wrap"><canvas id="chartProvincia"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>Ranking por Tipo de Problema</h3>
-      <p class="chart-sub">% de casos por motivo de asistencia</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por motivo de asistencia</p>
       <div class="chart-wrap"><canvas id="chartProblema"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>Ranking por Tiempo de Arribo</h3>
-      <p class="chart-sub">% de casos por tramo de demora</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por tramo de demora</p>
       <div class="chart-wrap"><canvas id="chartDemora"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>Ranking por Tipo de Servicio</h3>
-      <p class="chart-sub">% de casos por tipo de móvil asignado</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por tipo de móvil asignado</p>
       <div class="chart-wrap"><canvas id="chartTipoServicio"></canvas></div>
     </div>
     <div class="chart-card wide">
       <h3>Ranking por Kilometraje</h3>
-      <p class="chart-sub">% de casos por tramo de kilometraje del servicio</p>
+      <p class="chart-sub">% sobre encuestas respondidas, por tramo de kilometraje</p>
       <div class="chart-wrap"><canvas id="chartKm"></canvas></div>
     </div>
   </section>
@@ -936,15 +936,19 @@ function renderAll(){
   const records = applyFilters(RAW);
   document.getElementById('countCasos').textContent = records.length;
 
+  // Los "Ranking por..." se calculan solo sobre casos con encuesta Respondida o Parcial
+  // (se excluye NO RESPONDIÓ de la base del %).
+  const surveyed = records.filter(r => r.respondio === 'RESPONDIÓ' || r.respondio === 'PARCIAL');
+
   renderKpis(records);
   renderNps(records);
   renderNpsPorModelo(records);
-  pctBarChart('chartModelo', countBy(records,'modelo'), {color:COLORS.fordBlue});
-  pctBarChart('chartProvincia', countBy(records,'provincia'), {color:COLORS.tealSoft, maxItems:7});
-  pctBarChart('chartProblema', countBy(records,'tipoProblema'), {color:COLORS.orange, maxItems:7});
-  pctBarChart('chartDemora', countBy(records,'tramoDemora'), {color:COLORS.tealSoft});
-  pctBarChart('chartTipoServicio', countBy(records,'tipoMovil'), {color:COLORS.fordBlue});
-  pctBarChart('chartKm', countBy(records,'tramoKm'), {color:COLORS.orange});
+  pctBarChart('chartModelo', countBy(surveyed,'modelo'), {color:COLORS.fordBlue});
+  pctBarChart('chartProvincia', countBy(surveyed,'provincia'), {color:COLORS.tealSoft, maxItems:7});
+  pctBarChart('chartProblema', countBy(surveyed,'tipoProblema'), {color:COLORS.orange, maxItems:7});
+  pctBarChart('chartDemora', countBy(surveyed,'tramoDemora'), {color:COLORS.tealSoft});
+  pctBarChart('chartTipoServicio', countBy(surveyed,'tipoMovil'), {color:COLORS.fordBlue});
+  pctBarChart('chartKm', countBy(surveyed,'tramoKm'), {color:COLORS.orange});
 
   renderAccordion('accComentarios', records, 'categoriaComentario', 'comentario');
   renderAccordion('accMejoras', records, 'categoriaMejora', 'mejora');
