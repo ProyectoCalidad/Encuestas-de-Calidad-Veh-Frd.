@@ -534,6 +534,16 @@ function toPctObj(countObj){
   for(const [k,v] of Object.entries(countObj)) out[k] = total>0 ? (v/total*100) : 0;
   return out;
 }
+// Formatea un %: si redondeado a 1 decimal da "0%" pero el valor real es mayor a 0,
+// muestra más decimales en vez de ocultar que hay un caso ahí.
+function fmtPct(v){
+  if(v===undefined || v===null || v<=0) return '0%';
+  let r = Math.round(v*10)/10;
+  if(r > 0) return r+'%';
+  r = Math.round(v*100)/100;
+  if(r > 0) return r+'%';
+  return '<0.01%';
+}
 
 /* ============ Filtros (dropdowns) ============ */
 function uniqueSorted(records, field){
@@ -747,7 +757,7 @@ function pctBarChart(canvasId, dataObj, opts={}){
     data:{
       labels: entries.map(e=>e[0]),
       datasets:[{
-        data: entries.map(e=>Math.round(e[1]*10)/10),
+        data: entries.map(e=>e[1]),
         backgroundColor: opts.color || COLORS.fordBlue,
         borderRadius:5,
         maxBarThickness:26,
@@ -759,8 +769,8 @@ function pctBarChart(canvasId, dataObj, opts={}){
       layout:{padding:{right:38}},
       plugins:{
         legend:{display:false},
-        tooltip:{callbacks:{label:(c)=> ` ${c.parsed.x}%`}},
-        barLabels:{ enabled:true, formatter:(v)=> v+'%' }
+        tooltip:{callbacks:{label:(c)=> ` ${fmtPct(c.parsed.x)}`}},
+        barLabels:{ enabled:true, formatter:(v)=> fmtPct(v) }
       },
       scales:{
         x:{ grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'}, suggestedMax: Math.min(100, Math.max(...entries.map(e=>e[1]))*1.2) },
@@ -873,7 +883,7 @@ function renderNpsPorModelo(records){
       labels,
       datasets: cats.map(cat=>({
         label:cat,
-        data: idx.map(i=> Math.round((byModeloPct[i][cat]||0)*10)/10),
+        data: idx.map(i=> byModeloPct[i][cat]||0),
         backgroundColor: catColor(cat),
         borderRadius:4,
         maxBarThickness:16,
@@ -884,8 +894,8 @@ function renderNpsPorModelo(records){
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10,padding:14}},
-        tooltip:{callbacks:{label:(c)=> ` ${c.dataset.label}: ${c.parsed.x}%`}},
-        barLabels:{ enabled:true, stacked:true, minWidth:22, onColor:'#fff', formatter:(v)=> v>=6 ? Math.round(v)+'%' : '' }
+        tooltip:{callbacks:{label:(c)=> ` ${c.dataset.label}: ${fmtPct(c.parsed.x)}`}},
+        barLabels:{ enabled:true, stacked:true, minWidth:22, onColor:'#fff', formatter:(v)=> v>=6 ? fmtPct(v) : '' }
       },
       scales:{
         x:{ stacked:true, max:100, grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'} },
