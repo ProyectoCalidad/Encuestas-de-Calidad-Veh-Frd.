@@ -6,14 +6,14 @@
 <title>Actualizar datos del panel</title>
 <script src="xlsx.full.min.js"></script>
 <style>
-  :root{ --teal:#12A79C; --orange:#EE9324; --pink:#E61C5C; --ink:#1C1C1E; --paper:#F5F4F0; --line:#E6E4DE; --muted:#7A7972; }
+  :root{ --teal:#12A79C; --orange:#EE9324; --pink:#E61C5C; --ink:#1C1C1E; --paper:#F5F4F0; --line:#E6E4DE; --muted:#7A7972; --ford:#00095B; }
   *{box-sizing:border-box;}
   body{
     font-family:system-ui,sans-serif; background:var(--paper); color:var(--ink);
     margin:0; padding:40px 20px; display:flex; justify-content:center;
   }
   .box{
-    max-width:560px; width:100%; background:#fff; border-radius:16px;
+    max-width:640px; width:100%; background:#fff; border-radius:16px;
     box-shadow:0 8px 24px -12px rgba(0,0,0,0.15); padding:32px 34px;
   }
   h1{font-size:19px; margin:0 0 6px;}
@@ -28,24 +28,34 @@
   .drop .main{font-weight:600; font-size:14px;}
   .drop .hint{font-size:12.5px; color:var(--muted); margin-top:4px;}
   .status{margin-top:18px; font-size:13.5px; line-height:1.6;}
-  .status.ok{color:var(--teal);}
+  .status.ok{color:var(--teal); font-weight:600;}
   .status.err{color:var(--pink);}
+  .avisos{margin:12px 0 0; padding:12px 14px 12px 30px; background:#FFF6E8; border:1px solid #F6D9A8; border-radius:10px; font-size:12.5px; line-height:1.6; color:#6B4A10;}
+  .avisos li{margin:2px 0;}
+  .outs{display:none; margin-top:18px; gap:10px; flex-direction:column;}
+  .outs.show{display:flex;}
+  .out{display:flex; align-items:center; justify-content:space-between; gap:14px; border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .out .t{font-size:13.5px; font-weight:600;}
+  .out .d{font-size:12px; color:var(--muted); margin-top:2px; line-height:1.45;}
+  .out.priv{border-color:#F3B6C8; background:#FFF5F8;}
+  .out.priv .d{color:#9A2B52;}
+  .dlbtn{
+    flex:none; background:var(--ink); color:#fff; border:none; border-radius:10px;
+    padding:10px 16px; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .dlbtn[disabled]{opacity:0.5; cursor:wait;}
+  .msg{margin-top:10px; font-size:12.5px; color:var(--muted); line-height:1.5;}
+  .msg.err{color:var(--pink);}
   .steps{margin-top:26px; padding-top:22px; border-top:1px solid var(--line);}
   .steps h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 12px;}
   .steps ol{margin:0; padding-left:20px; font-size:13.5px; line-height:1.9; color:var(--ink);}
-  .dlbtn{
-    display:inline-flex; align-items:center; gap:8px; margin-top:16px;
-    background:var(--ink); color:#fff; border:none; border-radius:10px;
-    padding:11px 18px; font-size:13.5px; font-weight:600; cursor:pointer;
-  }
-  .dlbtn[disabled]{opacity:0.4; cursor:not-allowed;}
   code{background:var(--paper); padding:1px 6px; border-radius:5px; font-size:12.5px;}
 </style>
 </head>
 <body>
 <div class="box">
   <h1>Actualizar datos del panel</h1>
-  <p class="sub">Subí el Excel de BBDD del mes (el mismo formato de siempre) y esta página genera el <code>data.json</code> nuevo. Esto corre en tu navegador — el archivo no se envía a ningún servidor.</p>
+  <p class="sub">Cargá la BBDD del mes y esta página arma los tres archivos de la entrega. Todo corre en tu navegador: el Excel no se envía a ningún servidor.</p>
 
   <div class="drop" id="drop">
     <input type="file" id="fileInput" accept=".xlsx,.xls">
@@ -55,42 +65,290 @@
   </div>
 
   <div id="status" class="status"></div>
-  <button class="dlbtn" id="dlBtn" disabled>Descargar data.json</button>
+  <ul id="avisos" class="avisos" style="display:none"></ul>
+
+  <div class="outs" id="outs">
+    <div class="out">
+      <div><div class="t">1 · data.json</div><div class="d">Para subir al repositorio de GitHub (reemplaza al anterior). No tiene nombre, patente ni póliza.</div></div>
+      <button class="dlbtn" id="btnJson">Descargar</button>
+    </div>
+    <div class="out">
+      <div><div class="t">2 · Panel en HTML</div><div class="d">Un solo archivo con todo adentro, se abre sin internet ni GitHub. Tampoco tiene datos del asegurado.</div></div>
+      <button class="dlbtn" id="btnHtml">Descargar</button>
+    </div>
+    <div class="out priv">
+      <div><div class="t">3 · Detalle en Excel</div><div class="d">Incluye nombre del asegurado, patente y póliza. No subir a GitHub: es solo para la entrega.</div></div>
+      <button class="dlbtn" id="btnXlsx">Descargar</button>
+    </div>
+  </div>
+  <div id="msg" class="msg"></div>
 
   <div class="steps">
-    <h2>Cómo actualizar el panel cada mes</h2>
+    <h2>Cómo hacer la entrega cada mes</h2>
     <ol>
-      <li>Subí acá el Excel de BBDD del mes (acumulado o solo el mes nuevo, según cómo lo armes).</li>
-      <li>Descargá el <code>data.json</code> generado.</li>
-      <li>Reemplazá el archivo <code>data.json</code> en tu hosting por este nuevo (mismo nombre, misma carpeta que <code>index.html</code>).</li>
-      <li>Listo — el link del panel ya muestra los datos actualizados, sin tocar nada más.</li>
+      <li>Abrí esta página desde el link publicado (no con doble clic), así puede armar el HTML.</li>
+      <li>Cargá la BBDD (hoja acumulada, con todos los meses).</li>
+      <li>Descargá los tres archivos.</li>
+      <li>Subí solo el <code>data.json</code> a GitHub (Add file → Upload files, y confirmá que reemplaza al existente).</li>
+      <li>El HTML y el Excel salen por mail o por el medio que uses con el cliente.</li>
     </ol>
   </div>
 </div>
 
-<script>
-// Columnas por LETRA de Excel (posición), no por texto de encabezado —
-// más robusto porque algunos encabezados traen saltos de línea/emojis.
-const COL_LETTERS = {
-  B:'mes', G:'avgAtencion', H:'comentario', I:'avgAgente', M:'mejora',
-  N:'modelo', P:'tipoProblema', Q:'tipoMovil', R:'provincia',
-  T:'satAtencion', U:'satAgente', V:'confianza', W:'recomendacion',
-  X:'categoriaComentario', Y:'categoriaMejora', J:'resuelto', Z:'respondio',
-  AA:'tramoDemora', AB:'tramoKm',
-};
-function colIdx(letter){
-  let n = 0;
-  for(const ch of letter) n = n*26 + (ch.charCodeAt(0) - 64);
-  return n - 1;
+<!-- ============================ LÓGICA (sin DOM, se puede probar aparte) ============================ -->
+<script id="core">
+const CLIENTE = 'Ford_Assistance';   // se usa en el nombre de los archivos descargados
+
+// Columnas por NOMBRE de encabezado (texto normalizado: sin tildes, mayúsculas ni signos).
+// "eq" = igual, "starts" = empieza con (para encabezados largos).
+// req = el panel no funciona sin esa columna.
+const COLUMNAS = [
+  {key:'mes',                 label:'Mes',                                   eq:['mes'], req:true},
+  {key:'avgAtencion',         label:'Nivel de satisfacción con la experiencia general (1-5)', starts:['cual es tu nivel de satisfaccion con la experiencia general'], req:true},
+  {key:'comentario',          label:'Cuéntenos qué hicimos bien… (comentario)', starts:['cuentenos que hicimos bien'], req:true},
+  {key:'avgAgente',           label:'Grado de satisfacción con el agente (1-5)', starts:['que grado de satisfaccion tiene con el agente'], req:true},
+  {key:'resuelto',            label:'¿Resolvimos su problema y/o consulta?', starts:['resolvimos su problema'], req:true},
+  {key:'mejora',              label:'¿Qué crees que nos faltó…? (mejora)',    starts:['que crees que nos falto'], req:true},
+  {key:'modelo',              label:'Modelo',                                 eq:['modelo'], req:true},
+  {key:'tipoProblema',        label:'Tipo de Problema (o Nombre de la Urgencia)', eq:['tipo de problema','nombre de la urgencia'], req:true},
+  {key:'tipoMovil',           label:'Tipo de Móvil',                          eq:['tipo de movil'], req:true},
+  {key:'provincia',           label:'Provincia de Inicio',                    eq:['provincia de inicio'], req:true},
+  {key:'satAtencion',         label:'Satisfacción General de Atención',       eq:['satisfaccion general de atencion'], req:true},
+  {key:'satAgente',           label:'Satisfacción con Desempeño del Agente',  eq:['satisfaccion con desempeno del agente'], req:true},
+  {key:'confianza',           label:'Confianza en …',                         starts:['confianza en'], req:true},
+  {key:'recomendacion',       label:'Recomendación de … a otras personas',    starts:['recomendacion de'], req:true},
+  {key:'categoriaComentario', label:'Categoría Comentario',                   eq:['categoria comentario'], req:true},
+  {key:'categoriaMejora',     label:'Categoría Mejora Sugerida',              eq:['categoria mejora sugerida'], req:true},
+  {key:'respondio',           label:'RESPONDIO?',                             eq:['respondio'], req:true},
+  {key:'tramoDemora',         label:'Tramo Demora',                           eq:['tramo demora'], req:true},
+  {key:'tramoKm',             label:'Tramo Kilometraje',                      eq:['tramo kilometraje'], req:true},
+  // Solo para el Detalle en Excel:
+  {key:'id',                  label:'IdOrdenDeServicio',                      eq:['idordendeservicio','orden de servicio']},
+  {key:'poliza',              label:'NroPoliza',                              eq:['nropoliza','n de poliza']},
+  {key:'asegurado',           label:'Asegurado',                              eq:['asegurado']},
+  {key:'patente',             label:'Patente',                                eq:['patente']},
+  {key:'fechaServicio',       label:'FechaDeServicioPrestado',                eq:['fechadeservicioprestado','fecha de servicio']},
+  {key:'fechaEncuesta',       label:'FechaDeEncuesta',                        eq:['fechadeencuesta','fecha de encuesta']},
+  {key:'demoraMin',           label:'Demora (minutos)',                       starts:['demora (minutos']},
+  {key:'confianzaNum',        label:'Medida de acuerdo con "Siempre puedo confiar…" (1-5)', starts:['cuentenos en que medida esta de acuerdo']},
+];
+
+// Familias de modelo: se agrupan las variantes (RANGER T6, FORD RANGER (TRA) CR, etc.)
+const FAMILIAS_MODELO = [
+  ['RANGER',    /RANGER/],
+  ['TERRITORY', /TERRITORY/],
+  ['MAVERICK',  /MAVERI(C)?K/],
+  ['TRANSIT',   /TRANSIS?T/],
+  ['KUGA',      /KUGA/],
+  ['EVEREST',   /EVEREST/],
+  ['F-150',     /F[ -]?150|FORD V8/],
+];
+
+const DETALLE_HEADERS = [
+  'Orden de Servicio','N° de Póliza','Asegurado','Patente','Fecha de Servicio','Fecha de Encuesta','Estado de Encuesta',
+  'Modelo','Versión','Provincia','Tipo de Problema','Demora (min)',
+  'Atención (1-5)','Desempeño del agente (1-5)','¿Resolvimos su problema?','Confianza (1-5)','Recomendación',
+  'Comentario','Qué faltó para una experiencia excelente'
+];
+
+function normTxt(s){
+  return String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+    .replace(/[¿?¡!“”"':]/g,' ').replace(/\s+/g,' ').trim();
 }
-const NUMERIC_FIELDS = new Set(['avgAtencion','avgAgente']);
+function cell(v){
+  if(v===undefined || v===null) return null;
+  if(typeof v === 'string'){ const t = v.trim(); return t===''? null : t; }
+  return v;
+}
+function toNum(v){
+  v = cell(v); if(v===null) return null;
+  const n = Number(v); return isNaN(n) ? null : n;
+}
+function toDate(v){
+  v = cell(v); if(v===null) return null;
+  let d = null;
+  if(v instanceof Date) d = v;
+  else if(typeof v === 'number') d = new Date(Math.round((v-25569)*86400*1000));
+  else {
+    const m = String(v).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    d = m ? new Date(Number(m[3]), Number(m[2])-1, Number(m[1])) : new Date(v);
+  }
+  if(!d || isNaN(d)) return null;
+  // SheetJS puede traer segundos de desvío: se redondea al minuto para no cambiar de día/mes.
+  return new Date(Math.round(d.getTime()/60000)*60000);
+}
+function fmtFecha(d){
+  if(!d) return null;
+  const p = n => String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+function fmtMes(d){
+  if(!d) return null;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
 
-const drop = document.getElementById('drop');
-const fileInput = document.getElementById('fileInput');
-const statusEl = document.getElementById('status');
-const dlBtn = document.getElementById('dlBtn');
-let lastBlob = null;
+function normResuelto(v){
+  v = cell(v); if(v===null) return null;
+  const s = String(v).toLowerCase();
+  if(s.startsWith('si')) return 'Si';
+  if(s.startsWith('no') && !s.startsWith('no info')) return 'No';
+  if(s.startsWith('a medias')) return 'Parcial';
+  return 'Otro';
+}
+// -> {estado:'RESPONDIÓ'|'PARCIAL'|'NO RESPONDIÓ'|null, reconocido:boolean}
+function normRespondio(v){
+  v = cell(v); if(v===null) return {estado:null, reconocido:true};
+  const s = normTxt(v).toUpperCase();
+  if(s.includes('NO RESPOND')) return {estado:'NO RESPONDIÓ', reconocido:true};
+  if(s.includes('PARCIAL'))    return {estado:'PARCIAL',      reconocido:true};
+  if(s.includes('COMPLET') || s.includes('RESPONDI')) return {estado:'RESPONDIÓ', reconocido:true};
+  return {estado:'RESPONDIÓ', reconocido:false};
+}
+function normRecomendacion(v){
+  v = cell(v); if(v===null) return null;
+  const s = normTxt(v);
+  if(s.includes('detract') || s.includes('no recomend')) return 'Detractor';
+  if(s.includes('promotor')) return 'Promotor';
+  if(s.includes('neutral') || s.includes('pasivo')) return 'Neutral';
+  return String(v).trim();
+}
+function normProvincia(v){
+  v = cell(v); if(v===null) return null;
+  if(String(v) === '0') return null;
+  return String(v).replace(/\s+/g,' ').trim();
+}
+// -> {familia, agrupado}
+function agruparModelo(v){
+  v = cell(v); if(v===null) return {familia:null, agrupado:true};
+  const limpio = String(v).replace(/\s+/g,' ').trim().toUpperCase();
+  for(const [nombre, re] of FAMILIAS_MODELO) if(re.test(limpio)) return {familia:nombre, agrupado:true};
+  return {familia:limpio, agrupado:false};
+}
+function texto(v){ v = cell(v); return v===null ? null : String(v); }
+const ESTADO_DETALLE = {'RESPONDIÓ':'Encuesta Completa', 'PARCIAL':'Encuesta Parcial', 'NO RESPONDIÓ':'Encuesta No Respondida'};
 
+// rows: filas como arrays (la primera es el encabezado). Devuelve todo lo que necesitan los 3 archivos.
+function procesarFilas(rows){
+  if(!rows || !rows.length) throw new Error('El Excel está vacío.');
+  const hs = rows[0].map(normTxt);
+  const idx = {}, faltanReq = [], faltanOpc = [];
+  for(const c of COLUMNAS){
+    let j = -1;
+    if(c.eq)     j = hs.findIndex(h => c.eq.includes(h));
+    if(j<0 && c.starts) j = hs.findIndex(h => c.starts.some(p => h.startsWith(p)));
+    idx[c.key] = j;
+    if(j<0) (c.req ? faltanReq : faltanOpc).push(c.label);
+  }
+  if(faltanReq.length){
+    throw new Error('Faltan columnas en el Excel: ' + faltanReq.join(' · '));
+  }
+  const get = (row,k) => idx[k] >= 0 ? row[idx[k]] : null;
+
+  const avisos = [];
+  const modelosSinAgrupar = new Set();
+  const respondioRaros = new Set();
+  let sinMes = 0;
+  const records = [], detalle = [];
+
+  for(const row of rows.slice(1)){
+    if(!row || !row.some(v => cell(v) !== null)) continue;
+
+    const fMes = toDate(get(row,'mes'));
+    if(!fMes) sinMes++;
+    const mod = agruparModelo(get(row,'modelo'));
+    if(!mod.agrupado) modelosSinAgrupar.add(mod.familia);
+    const resp = normRespondio(get(row,'respondio'));
+    if(!resp.reconocido) respondioRaros.add(String(cell(get(row,'respondio'))));
+    const reco = normRecomendacion(get(row,'recomendacion'));
+    const prov = normProvincia(get(row,'provincia'));
+
+    records.push({
+      mes: fmtMes(fMes),
+      avgAtencion: toNum(get(row,'avgAtencion')),
+      comentario: texto(get(row,'comentario')),
+      avgAgente: toNum(get(row,'avgAgente')),
+      mejora: texto(get(row,'mejora')),
+      modelo: mod.familia,
+      tipoProblema: texto(get(row,'tipoProblema')),
+      tipoMovil: texto(get(row,'tipoMovil')),
+      provincia: prov,
+      satAtencion: texto(get(row,'satAtencion')),
+      satAgente: texto(get(row,'satAgente')),
+      confianza: texto(get(row,'confianza')),
+      recomendacion: reco,
+      categoriaComentario: texto(get(row,'categoriaComentario')),
+      categoriaMejora: texto(get(row,'categoriaMejora')),
+      resuelto: normResuelto(get(row,'resuelto')),
+      respondio: resp.estado,
+      tramoDemora: texto(get(row,'tramoDemora')),
+      tramoKm: texto(get(row,'tramoKm')),
+    });
+
+    detalle.push({
+      'Orden de Servicio': cell(get(row,'id')),
+      'N° de Póliza': texto(get(row,'poliza')),
+      'Asegurado': texto(get(row,'asegurado')),
+      'Patente': texto(get(row,'patente')),
+      'Fecha de Servicio': fmtFecha(toDate(get(row,'fechaServicio'))),
+      'Fecha de Encuesta': fmtFecha(toDate(get(row,'fechaEncuesta'))),
+      'Estado de Encuesta': resp.estado ? ESTADO_DETALLE[resp.estado] : null,
+      'Modelo': mod.familia,
+      'Versión': texto(get(row,'modelo')),
+      'Provincia': prov,
+      'Tipo de Problema': texto(get(row,'tipoProblema')),
+      'Demora (min)': toNum(get(row,'demoraMin')),
+      'Atención (1-5)': toNum(get(row,'avgAtencion')),
+      'Desempeño del agente (1-5)': toNum(get(row,'avgAgente')),
+      '¿Resolvimos su problema?': texto(get(row,'resuelto')),
+      'Confianza (1-5)': toNum(get(row,'confianzaNum')),
+      'Recomendación': reco,
+      'Comentario': texto(get(row,'comentario')),
+      'Qué faltó para una experiencia excelente': texto(get(row,'mejora')),
+    });
+  }
+
+  if(sinMes) avisos.push(`${sinMes} fila(s) sin mes válido: no se van a ver en el filtro de Mes.`);
+  if(modelosSinAgrupar.size) avisos.push('Modelos sin agrupar (quedan con su nombre, avisame para sumarlos a una familia): ' + [...modelosSinAgrupar].join(', '));
+  if(respondioRaros.size) avisos.push('Texto de RESPONDIO? no reconocido (se contó como encuesta completa): ' + [...respondioRaros].join(', '));
+  if(faltanOpc.length) avisos.push('Faltan columnas para el Detalle en Excel (sale en blanco): ' + faltanOpc.join(' · '));
+
+  const meses = [...new Set(records.map(r => r.mes).filter(Boolean))].sort();
+  return {records, detalle, avisos, meses};
+}
+
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function mesLegible(ym){ const [y,m] = ym.split('-'); return `${MESES_ES[Number(m)-1]} ${y}`; }
+
+// Arma el HTML autónomo a partir del index.html publicado. Falla si index.html cambió y no encuentra los puntos de reemplazo.
+// (Las etiquetas script se escriben partidas para que el navegador no cierre este bloque antes de tiempo.)
+const S_ABRE = '<scr' + 'ipt>';
+const S_CIERRA = '</scr' + 'ipt>';
+function ensamblarHtml(indexText, chartJs, logoUri, fordUri, payload){
+  const escScript = s => s.split(S_CIERRA.slice(0,8)).join('<\\/scr' + 'ipt');
+  const escJson = o => JSON.stringify(o).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  const cambios = [
+    ['<scr' + 'ipt src="chart.umd.min.js">' + S_CIERRA,
+      () => S_ABRE + escScript(chartJs) + S_CIERRA + '\n' + S_ABRE + 'window.__PANEL_DATA__=' + escJson(payload) + ';' + S_CIERRA],
+    ['src="logo.png"',       () => 'src="' + logoUri + '"'],
+    ['src="ford-logo.png"',  () => 'src="' + fordUri + '"'],
+    ["fetch('data.json', {cache:'no-store'})", () => "Promise.resolve({json:function(){return window.__PANEL_DATA__;}})"],
+  ];
+  let out = indexText;
+  for(const [buscar, reemplazo] of cambios){
+    const n = out.split(buscar).length - 1;
+    if(n !== 1) throw new Error('index.html cambió y no pude armar el HTML autónomo (no encontré: ' + buscar + ').');
+    out = out.split(buscar).join(reemplazo());
+  }
+  return out;
+}
+</script>
+
+<!-- ============================ INTERFAZ ============================ -->
+<script>
+const $ = id => document.getElementById(id);
+let RESULT = null;
+
+const drop = $('drop'), fileInput = $('fileInput');
 drop.addEventListener('click', ()=> fileInput.click());
 drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('drag'); });
 drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
@@ -98,91 +356,100 @@ drop.addEventListener('drop', e=>{
   e.preventDefault(); drop.classList.remove('drag');
   if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
 });
-fileInput.addEventListener('change', e=>{
-  if(e.target.files.length) handleFile(e.target.files[0]);
-});
+fileInput.addEventListener('change', e=>{ if(e.target.files.length) handleFile(e.target.files[0]); });
 
-function excelDateToStr(v){
-  // v puede venir como Date, string ISO, o número de serie Excel
-  let d;
-  if(v instanceof Date) d = v;
-  else if(typeof v === 'number') d = new Date(Math.round((v-25569)*86400*1000));
-  else d = new Date(v);
-  if(isNaN(d)) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  return `${y}-${m}`;
-}
-
-function normResuelto(v){
-  if(v===null || v===undefined || v==='') return null;
-  const s = String(v).trim().toLowerCase();
-  if(s.startsWith('si')) return 'Si';
-  if(s.startsWith('no') && !s.startsWith('no info')) return 'No';
-  if(s.startsWith('a medias')) return 'Parcial';
-  return 'Otro';
-}
+function setMsg(t, err){ const m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (err ? ' err' : ''); }
 
 function handleFile(file){
-  statusEl.className='status';
-  statusEl.textContent = 'Procesando…';
-  dlBtn.disabled = true;
+  RESULT = null;
+  $('outs').classList.remove('show');
+  $('avisos').style.display = 'none';
+  setMsg('');
+  const st = $('status'); st.className = 'status'; st.textContent = 'Procesando…';
   const reader = new FileReader();
   reader.onload = (e)=>{
     try{
       const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
       const sheet = wb.Sheets[wb.SheetNames[0]];
-      // header:1 -> filas como arrays, indexadas por posición de columna
       const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:null, raw:true});
-      const dataRows = rows.slice(1); // saltar encabezado
-
-      const maxIdx = Math.max(...Object.keys(COL_LETTERS).map(colIdx));
-      if((rows[0]||[]).length <= maxIdx){
-        throw new Error(`El Excel tiene menos columnas de las esperadas (hasta la ${Object.keys(COL_LETTERS).sort((a,b)=>colIdx(a)-colIdx(b)).pop()}).`);
-      }
-
-      const records = dataRows
-        .filter(r => r.some(v => v !== null && v !== ''))
-        .map(row=>{
-          const out = {};
-          for(const [letter, name] of Object.entries(COL_LETTERS)){
-            let v = row[colIdx(letter)];
-            if(v===undefined || v===null || v==='') v = null;
-            if(typeof v === 'string') v = v.trim() || null;
-            out[name] = v;
-          }
-          out.mes = row[colIdx('B')] ? excelDateToStr(row[colIdx('B')]) : null;
-          out.resuelto = normResuelto(row[colIdx('J')]);
-          for(const f of NUMERIC_FIELDS){
-            const n = Number(out[f]);
-            out[f] = (out[f]===null || isNaN(n)) ? null : n;
-          }
-          return out;
-        });
-
-      const payload = {
-        generatedAt: new Date().toLocaleString('es-AR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
-        records,
-      };
-      lastBlob = new Blob([JSON.stringify(payload, null, 0)], {type:'application/json'});
-      statusEl.className = 'status ok';
-      statusEl.textContent = `Listo: ${records.length} registros procesados.`;
-      dlBtn.disabled = false;
+      RESULT = procesarFilas(rows);
+      const rango = RESULT.meses.length ? RESULT.meses.map(mesLegible).join(', ') : 'sin meses';
+      st.className = 'status ok';
+      st.textContent = `Listo: ${RESULT.records.length} registros (${rango}).`;
+      const ul = $('avisos');
+      ul.innerHTML = '';
+      RESULT.avisos.forEach(a => { const li = document.createElement('li'); li.textContent = a; ul.appendChild(li); });
+      ul.style.display = RESULT.avisos.length ? 'block' : 'none';
+      $('outs').classList.add('show');
     }catch(err){
-      statusEl.className = 'status err';
-      statusEl.textContent = 'Error: ' + err.message;
+      st.className = 'status err';
+      st.textContent = 'Error: ' + err.message;
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-dlBtn.addEventListener('click', ()=>{
-  if(!lastBlob) return;
-  const url = URL.createObjectURL(lastBlob);
+function descargar(blob, nombre){
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'data.json';
+  a.href = url; a.download = nombre;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
+}
+function sufijo(){ return RESULT.meses.length ? RESULT.meses[RESULT.meses.length-1] : 'sin-mes'; }
+function armarPayload(){
+  return {
+    generatedAt: new Date().toLocaleString('es-AR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    records: RESULT.records,
+  };
+}
+
+// 1) data.json
+$('btnJson').addEventListener('click', ()=>{
+  if(!RESULT) return;
+  descargar(new Blob([JSON.stringify(armarPayload())], {type:'application/json'}), 'data.json');
+  setMsg('data.json descargado: subilo a GitHub reemplazando el anterior.');
+});
+
+// 2) HTML autónomo
+async function leerTexto(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(url + ' (' + r.status + ')');
+  return r.text();
+}
+async function leerDataUri(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(url + ' (' + r.status + ')');
+  const blob = await r.blob();
+  return new Promise((ok, mal)=>{ const fr = new FileReader(); fr.onload = ()=>ok(fr.result); fr.onerror = mal; fr.readAsDataURL(blob); });
+}
+$('btnHtml').addEventListener('click', async ()=>{
+  if(!RESULT) return;
+  const btn = $('btnHtml'); btn.disabled = true; setMsg('Armando el HTML…');
+  try{
+    const [indexText, chartJs, logo, ford] = await Promise.all([
+      leerTexto('index.html'), leerTexto('chart.umd.min.js'), leerDataUri('logo.png'), leerDataUri('ford-logo.png')
+    ]);
+    const html = ensamblarHtml(indexText, chartJs, logo, ford, armarPayload());
+    descargar(new Blob([html], {type:'text/html;charset=utf-8'}), `Panel_Resultados_${CLIENTE}_${sufijo()}.html`);
+    setMsg('HTML descargado. Es un archivo único: se abre con doble clic, sin internet.');
+  }catch(err){
+    const local = location.protocol === 'file:';
+    setMsg('No pude armar el HTML: ' + err.message + (local ? '. Abrí esta página desde el link publicado (no con doble clic) para que pueda leer los demás archivos.' : ''), true);
+  }finally{ btn.disabled = false; }
+});
+
+// 3) Detalle en Excel (con datos personales)
+$('btnXlsx').addEventListener('click', ()=>{
+  if(!RESULT) return;
+  const ws = XLSX.utils.json_to_sheet(RESULT.detalle, {header: DETALLE_HEADERS});
+  ws['!cols'] = [14,16,34,11,15,15,22,12,24,24,24,12,12,16,40,14,15,60,50].map(w => ({wch:w}));
+  ws['!autofilter'] = {ref: ws['!ref']};
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Detalle');
+  const out = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  descargar(new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), `Detalle_encuestas_${CLIENTE}_${sufijo()}.xlsx`);
+  setMsg('Detalle descargado. Tiene datos personales: no lo subas a GitHub.');
 });
 </script>
 </body>

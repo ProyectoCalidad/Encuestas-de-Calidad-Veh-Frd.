@@ -734,6 +734,18 @@ function renderKpis(records){
 }
 
 /* ============ Gráficos de ranking (% + etiquetas) ============ */
+// Parte nombres largos en hasta 3 líneas para que no se corten en el eje.
+function wrapLabel(str, max=28){
+  const words = String(str).split(' ');
+  const lines = []; let cur = '';
+  for(const w of words){
+    if(cur && (cur + ' ' + w).length > max){ lines.push(cur); cur = w; }
+    else cur = cur ? cur + ' ' + w : w;
+  }
+  if(cur) lines.push(cur);
+  if(lines.length > 3){ lines.length = 3; lines[2] = lines[2].replace(/.{0,2}$/, '') + '…'; }
+  return lines.length > 1 ? lines : lines[0];
+}
 function pctBarChart(canvasId, dataObj, opts={}){
   const pctObj = toPctObj(dataObj);
   let entries = sortDesc(pctObj);
@@ -755,7 +767,7 @@ function pctBarChart(canvasId, dataObj, opts={}){
   CHARTS[canvasId] = new Chart(ctx, {
     type:'bar',
     data:{
-      labels: entries.map(e=>e[0]),
+      labels: entries.map(e=>wrapLabel(e[0])),
       datasets:[{
         data: entries.map(e=>e[1]),
         backgroundColor: opts.color || COLORS.fordBlue,
@@ -774,7 +786,7 @@ function pctBarChart(canvasId, dataObj, opts={}){
       },
       scales:{
         x:{ grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'}, suggestedMax: Math.min(100, Math.max(...entries.map(e=>e[1]))*1.2) },
-        y:{ grid:{display:false} }
+        y:{ grid:{display:false}, ticks:{autoSkip:false} }
       }
     }
   });
@@ -857,7 +869,9 @@ function renderNps(records){
   });
 }
 
-function renderNpsPorModelo(records){
+function renderNpsPorModelo(allRecords){
+  // Solo cuentan los casos con recomendación respondida; un modelo sin respuestas no se lista.
+  const records = allRecords.filter(r => r.recomendacion);
   const modelos = uniqueSorted(records,'modelo');
   const cats = ['Promotor','Neutral','Detractor'];
   const el = document.getElementById('chartNpsModelo');
@@ -906,6 +920,7 @@ function renderNpsPorModelo(records){
 }
 
 /* ============ Comentarios (acordeón) ============ */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function renderAccordion(containerId, records, catField, textField){
   const container = document.getElementById(containerId);
   const groups = {};
@@ -917,7 +932,9 @@ function renderAccordion(containerId, records, catField, textField){
     if(!groups[cat]) groups[cat] = [];
     groups[cat].push({text, mes:r.mes, modelo:r.modelo});
   });
-  const entries = Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  // "Sin categorizar" siempre al final; el resto por cantidad de comentarios.
+  const esSinCat = k => k.toLowerCase().includes('sin categorizar');
+  const entries = Object.entries(groups).sort((a,b)=> (esSinCat(a[0])-esSinCat(b[0])) || (b[1].length-a[1].length));
   if(entries.length===0){
     container.innerHTML = '<p class="empty-note" style="padding:24px 0;">Sin comentarios para los filtros seleccionados.</p>';
     return;
@@ -925,14 +942,14 @@ function renderAccordion(containerId, records, catField, textField){
   container.innerHTML = entries.map(([cat, items], idx)=>`
     <div class="acc-item" data-idx="${idx}">
       <div class="acc-head">
-        <span class="name">${cat}</span>
+        <span class="name">${esc(cat)}</span>
         <span style="display:flex;align-items:center;gap:8px;">
           <span class="count">${items.length}</span>
           <span class="chev">▾</span>
         </span>
       </div>
       <div class="acc-body">
-        ${items.map(it=>`<div class="comment-line">“${it.text}”<span class="meta">${it.modelo||''} · ${it.mes||''}</span></div>`).join('')}
+        ${items.map(it=>`<div class="comment-line">“${esc(it.text)}”<span class="meta">${esc(it.modelo||'')} · ${esc(it.mes||'')}</span></div>`).join('')}
       </div>
     </div>`).join('');
   container.querySelectorAll('.acc-head').forEach(head=>{
