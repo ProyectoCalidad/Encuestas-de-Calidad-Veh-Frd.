@@ -396,7 +396,7 @@
       <p class="chart-sub">% sobre encuestas respondidas, por tipo de móvil asignado</p>
       <div class="chart-wrap"><canvas id="chartTipoServicio"></canvas></div>
     </div>
-    <div class="chart-card wide">
+    <div class="chart-card">
       <h3>Ranking por Kilometraje</h3>
       <p class="chart-sub">% sobre encuestas respondidas, por tramo de kilometraje</p>
       <div class="chart-wrap"><canvas id="chartKm"></canvas></div>
@@ -786,7 +786,7 @@ function pctBarChart(canvasId, dataObj, opts={}){
       },
       scales:{
         x:{ grid:{color:cssVar('--line')}, ticks:{callback:v=>v+'%'}, suggestedMax: Math.min(100, Math.max(...entries.map(e=>e[1]))*1.2) },
-        y:{ grid:{display:false}, ticks:{autoSkip:false} }
+        y:{ grid:{display:false}, ticks:{autoSkip:false, padding:6}, afterFit(scale){ scale.width += 14; } }
       }
     }
   });
@@ -996,6 +996,14 @@ fetch('data.json', {cache:'no-store'})
       '<p class="empty-note">No se pudo cargar data.json. Verificá que el archivo esté junto a index.html.</p>';
     console.error(err);
   });
+
+/* Redibuja cuando la tipografía termina de cargar: los gráficos miden el ancho de las etiquetas
+   al crearse y, si la fuente llega después, las etiquetas más largas se salían por la izquierda. */
+(function(){
+  if(!document.fonts || !document.fonts.load) return;
+  const pedidas = ["400 12px Inter","600 12px Inter","800 12px Manrope"].map(f => document.fonts.load(f).catch(()=>null));
+  Promise.all(pedidas).then(()=>{ if(RAW && RAW.length) renderAll(); });
+})();
 </script>
 </body>
 </html>
