@@ -142,6 +142,8 @@ const FAMILIAS_MODELO = [
   ['KUGA',      /KUGA/],
   ['EVEREST',   /EVEREST/],
   ['F-150',     /F[ -]?150|FORD V8/],
+  ['BRONCO',    /BRONCO/],             // incluye Bronco Sport y sus versiones
+  ['MUSTANG',   /MUSTANG|MACH[ -]?E/], // incluye Mustang Mach-E
 ];
 
 const DETALLE_HEADERS = [
@@ -221,6 +223,7 @@ function normProvincia(v){
 function agruparModelo(v){
   v = cell(v); if(v===null) return {familia:null, agrupado:true};
   const limpio = String(v).replace(/\s+/g,' ').trim().toUpperCase();
+  if(limpio === 'SIN INFORMAR') return {familia:null, agrupado:true};   // se trata como vacío
   for(const [nombre, re] of FAMILIAS_MODELO) if(re.test(limpio)) return {familia:nombre, agrupado:true};
   return {familia:limpio, agrupado:false};
 }
